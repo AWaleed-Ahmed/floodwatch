@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.floodwatch.model.DataStatus;
 import com.floodwatch.model.ForecastSeries;
+import com.floodwatch.support.MutableClock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -30,6 +31,7 @@ class SeriesCacheTest {
 
     private static final Duration TTL = Duration.ofMinutes(30);
     private static final String KEY = "a1";
+    private static final Instant START = Instant.parse("2026-11-23T10:00:00Z");
 
     /**
      * Builds a test series.
@@ -52,16 +54,18 @@ class SeriesCacheTest {
      * Stands in for a live API call and counts how often it is used.
      *
      * @param calls counter increased on every call
+     * @param clock clock giving the fetch time
      * @return a fresh LIVE series
      */
 
 
     private static ForecastSeries countedLive
     (
-        AtomicInteger calls
+        AtomicInteger calls,
+        MutableClock clock
     ) {
         calls.incrementAndGet();
-        return series(DataStatus.LIVE, Instant.now());
+        return series(DataStatus.LIVE, clock.instant());
     }
 
     /**
@@ -83,11 +87,30 @@ class SeriesCacheTest {
 
     @Test
     void liveCallIsReturnedAndThenServedFromCache() {
-        SeriesCache cache = new SeriesCache(TTL);
+        MutableClock clock = new MutableClock(START);
+        SeriesCache cache = new SeriesCache(TTL, clock);
         AtomicInteger calls = new AtomicInteger();
-        assertEquals(DataStatus.LIVE, cache.get(KEY, () -> countedLive(calls), () -> null).status());
-        assertEquals(DataStatus.CACHED, cache.get(KEY, () -> countedLive(calls), () -> null).status());
+        assertEquals(DataStatus.LIVE, cache.get(KEY, () -> countedLive(calls, clock), () -> null).status());
+        assertEquals(DataStatus.CACHED, cache.get(KEY, () -> countedLive(calls, clock), () -> null).status());
         assertEquals(1, calls.get(), "second request must not call the API");
+    }
+
+    /**
+     * An entry exactly at the cache time is still fresh; one second later it is refetched.
+     */
+
+
+    @Test
+    void entryExpiresRightAfterTheCacheTime() {
+        MutableClock clock = new MutableClock(START);
+        SeriesCache cache = new SeriesCache(TTL, clock);
+        AtomicInteger calls = new AtomicInteger();
+        cache.get(KEY, () -> countedLive(calls, clock), () -> null);
+        clock.advance(TTL);
+        assertEquals(DataStatus.CACHED, cache.get(KEY, () -> countedLive(calls, clock), () -> null).status());
+        clock.advance(Duration.ofSeconds(1));
+        assertEquals(DataStatus.LIVE, cache.get(KEY, () -> countedLive(calls, clock), () -> null).status());
+        assertEquals(2, calls.get());
     }
 
     /**
@@ -97,10 +120,13 @@ class SeriesCacheTest {
 
     @Test
     void outageWithOldCacheReturnsCachedCopy() {
-        SeriesCache cache = new SeriesCache(TTL);
-        cache.get(KEY, () -> series(DataStatus.LIVE, Instant.now().minus(Duration.ofHours(2))), () -> null);
-        ForecastSeries result = cache.get(KEY, SeriesCacheTest::failingLive, () -> series(DataStatus.SAMPLE, Instant.now()));
+        MutableClock clock = new MutableClock(START);
+        SeriesCache cache = new SeriesCache(TTL, clock);
+        cache.get(KEY, () -> series(DataStatus.LIVE, clock.instant()), () -> null);
+        clock.advance(Duration.ofHours(2));
+        ForecastSeries result = cache.get(KEY, SeriesCacheTest::failingLive, () -> series(DataStatus.SAMPLE, clock.instant()));
         assertEquals(DataStatus.CACHED, result.status());
+        assertEquals(START, result.fetchedAt(), "the old fetch time must be kept so the UI can show its age");
     }
 
     /**
@@ -110,8 +136,39 @@ class SeriesCacheTest {
 
     @Test
     void outageWithNoCacheReturnsSampleData() {
-        SeriesCache cache = new SeriesCache(TTL);
-        ForecastSeries result = cache.get(KEY, SeriesCacheTest::failingLive, () -> series(DataStatus.SAMPLE, Instant.now()));
+        SeriesCache cache = new SeriesCache(TTL, new MutableClock(START));
+        ForecastSeries result = cache.get(KEY, SeriesCacheTest::failingLive, () -> series(DataStatus.SAMPLE, START));
         assertEquals(DataStatus.SAMPLE, result.status());
+    }
+
+    /**
+     * An UNAVAILABLE answer (point off the river network) is not cached, so it is asked again next time.
+     */
+
+
+    @Test
+    void unavailableResultIsNotCached() {
+        MutableClock clock = new MutableClock(START);
+        SeriesCache cache = new SeriesCache(TTL, clock);
+        AtomicInteger calls = new AtomicInteger();
+        cache.get(KEY, () -> unavailable(calls), () -> null);
+        cache.get(KEY, () -> unavailable(calls), () -> null);
+        assertEquals(2, calls.get());
+    }
+
+    /**
+     * Stands in for a source that has no data for the point, counting calls.
+     *
+     * @param calls counter increased on every call
+     * @return an UNAVAILABLE series
+     */
+
+
+    private static ForecastSeries unavailable
+    (
+        AtomicInteger calls
+    ) {
+        calls.incrementAndGet();
+        return ForecastSeries.unavailable(KEY, "test", "mm", START);
     }
 }

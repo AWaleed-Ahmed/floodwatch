@@ -9,16 +9,18 @@ package com.floodwatch;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 
 /**
- * Starts the full Spring context to catch wiring and configuration errors.
+ * Starts the full Spring context, with test storage, to catch wiring and configuration errors.
  *
  * @author Abdullah Waleed Ahmed, Muhammad Rehan Haider, Syed Ehtisham Haider Bukhari, Faheem Ahmad Khan
  */
 
 
 @SpringBootTest
+@ActiveProfiles("test")
 class FloodwatchApiApplicationTests {
 
 

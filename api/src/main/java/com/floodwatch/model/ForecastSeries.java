@@ -50,34 +50,38 @@ public record ForecastSeries
     }
 
     /**
-     * Tells whether the series is older than the given age.
+     * Tells whether the series is older than the given age at the given moment.
      *
      * @param maxAge how long the series counts as fresh
+     * @param now    the current time
      * @return true when the series is older than maxAge
      */
 
 
     public boolean isStale
     (
-        Duration maxAge
+        Duration maxAge,
+        Instant now
     ) {
-        return fetchedAt.plus(maxAge).isBefore(Instant.now());
+        return fetchedAt.plus(maxAge).isBefore(now);
     }
 
     /**
      * Creates an empty series that says no data exists for this place.
      *
-     * @param areaId id of the area
-     * @param source name of the source that had no data
-     * @param unit   unit the data would have had
+     * @param areaId    id of the area
+     * @param source    name of the source that had no data
+     * @param unit      unit the data would have had
+     * @param fetchedAt when the source was asked
      * @return an empty series with status UNAVAILABLE
      */
 
 
     public static ForecastSeries unavailable
     (
-        String areaId, String source, String unit
+        String areaId, String source, String unit,
+        Instant fetchedAt
     ) {
-        return new ForecastSeries(areaId, source, unit, Instant.now(), DataStatus.UNAVAILABLE, List.of());
+        return new ForecastSeries(areaId, source, unit, fetchedAt, DataStatus.UNAVAILABLE, List.of());
     }
 }

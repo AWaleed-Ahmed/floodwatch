@@ -9,6 +9,7 @@ package com.floodwatch.integration;
 
 import com.floodwatch.model.DataStatus;
 import com.floodwatch.model.ForecastSeries;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,19 +30,23 @@ public class SeriesCache {
 
     private final Map<String, ForecastSeries> cache = new ConcurrentHashMap<>();
     private final Duration ttl;
+    private final Clock clock;
 
     /**
      * Creates a cache whose entries count as fresh for the given time.
      *
-     * @param ttl how long a cached series is fresh
+     * @param ttl   how long a cached series is fresh
+     * @param clock source of the current time
      */
 
 
     public SeriesCache
     (
-        Duration ttl
+        Duration ttl,
+        Clock clock
     ) {
         this.ttl = ttl;
+        this.clock = clock;
     }
 
     /**
@@ -60,7 +65,7 @@ public class SeriesCache {
         Supplier<ForecastSeries> live, Supplier<ForecastSeries> sample
     ) {
         ForecastSeries cached = cache.get(key);
-        if (cached != null && !cached.isStale(ttl))
+        if (cached != null && !cached.isStale(ttl, clock.instant()))
         {
             return cached.withStatus(DataStatus.CACHED);
         }

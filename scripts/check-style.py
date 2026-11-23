@@ -15,7 +15,7 @@ TYPE_DECL = re.compile(r"^(\s*)(public |protected |private |static |final |abstr
                        r"(class|interface|enum|record|@interface)\s+(\w+)")
 METHOD_DECL = re.compile(r"^(\s+)((public|protected|private|static|final|abstract|synchronized|default|native)\s+)*"
                          r"(<[^>]+>\s+)?([\w.<>\[\],? ]+?)\s+(\w+)\s*(\(.*)?$")
-CTOR_DECL = re.compile(r"^(\s+)((public|protected|private)\s+)(\w+)\s*(\(.*)?$")
+CTOR_DECL = re.compile(r"^(\s+)((public|protected|private)\s+)?(\w+)\s*(\(.*)?$")
 NOT_METHOD_START = ("return ", "new ", "throw ", "else", "case ", "yield ", "assert ")
 
 
@@ -257,7 +257,7 @@ class Checker:
         mm = METHOD_DECL.match(line)
         if not is_ctor and not mm:
             return
-        if not is_ctor and mm.group(5).strip() in ("return", "new", "throw"):
+        if not is_ctor and (not mm.group(5).strip() or mm.group(5).strip() in ("return", "new", "throw")):
             return
         name = type_name if is_ctor else mm.group(6)
         rest = (ctor.group(5) if is_ctor else mm.group(7)) or ""

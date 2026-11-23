@@ -10,6 +10,7 @@ package com.floodwatch.integration;
 import com.floodwatch.config.AppProperties;
 import com.floodwatch.model.Area;
 import com.floodwatch.model.ForecastSeries;
+import java.time.Clock;
 import java.time.Duration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -37,6 +38,7 @@ public class CachingRiverProxy implements RiverDataProvider {
      * @param real    the adapter that calls the real API
      * @param samples source of labelled sample data
      * @param props   settings holding the cache time
+     * @param clock   source of the current time
      */
 
 
@@ -44,11 +46,12 @@ public class CachingRiverProxy implements RiverDataProvider {
     (
         OpenMeteoFloodAdapter real,
         SampleDataProvider samples,
-        AppProperties props
+        AppProperties props,
+        Clock clock
     ) {
         this.real = real;
         this.samples = samples;
-        this.cache = new SeriesCache(Duration.ofMinutes(props.cache().forecastTtlMinutes()));
+        this.cache = new SeriesCache(Duration.ofMinutes(props.cache().forecastTtlMinutes()), clock);
     }
 
     /**

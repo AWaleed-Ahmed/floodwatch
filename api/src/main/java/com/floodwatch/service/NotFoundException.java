@@ -1,11 +1,13 @@
 /*
  * File:    NotFoundException.java
  * Authors: Abdullah Waleed Ahmed, Muhammad Rehan Haider, Syed Ehtisham Haider Bukhari, Faheem Ahmad Khan
- * Purpose: Signals that a requested record does not exist.
+ * Purpose: Signals that a requested record does not exist (HTTP 404).
  */
 
 
 package com.floodwatch.service;
+
+import org.springframework.http.HttpStatus;
 
 
 /**
@@ -15,13 +17,13 @@ package com.floodwatch.service;
  */
 
 
-public class NotFoundException extends RuntimeException {
+public class NotFoundException extends ApiException {
 
 
     /**
      * Creates the exception.
      *
-     * @param message which record was not found
+     * @param message message shown to the caller
      */
 
 
@@ -29,6 +31,6 @@ public class NotFoundException extends RuntimeException {
     (
         String message
     ) {
-        super(message);
+        super(HttpStatus.NOT_FOUND, message);
     }
 }
