@@ -45,6 +45,6 @@ public final class TestProperties {
         int cooldownHours, int retentionDays, int maxSubscriptions
     ) {
         AppProperties.Alerts alerts = new AppProperties.Alerts(15, cooldownHours, schedulerEnabled, retentionDays, maxSubscriptions);
-        return new AppProperties(null, null, null, alerts, null, null, null);
+        return new AppProperties(null, null, null, alerts, null, null, null, new AppProperties.Support(null));
     }
 }

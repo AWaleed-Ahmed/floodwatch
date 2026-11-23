@@ -59,7 +59,7 @@ class AuthServiceTest {
     void setUp() {
         clock = new MutableClock(START);
         UserRepository users = new UserRepository(new LocalFileStorage("src/test/resources/test-data"), JsonMapper.builder().build());
-        AppProperties props = new AppProperties(null, null, null, null, null, null, new AppProperties.Auth(8));
+        AppProperties props = new AppProperties(null, null, null, null, null, null, new AppProperties.Auth(8), null);
         auth = new AuthService(users, new LoginAttemptLimiter(clock), clock, props);
     }
 

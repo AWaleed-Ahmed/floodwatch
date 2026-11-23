@@ -63,7 +63,8 @@ class OpenMeteoFloodHistoryAdapterTest {
                 new AppProperties.Alerts(10, 6, false, 30, 10),
                 new AppProperties.Storage("test", "", "", ""),
                 new AppProperties.Cors(List.of()),
-                new AppProperties.Auth(8));
+                new AppProperties.Auth(8),
+                new AppProperties.Support(null));
         RestClient.Builder builder = RestClient.builder();
         server = MockRestServiceServer.bindTo(builder).build();
         RestClient client = builder.build();
