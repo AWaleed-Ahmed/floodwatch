@@ -1,0 +1,5 @@
+[
+  { "areaId": "mingora",   "minLevel": "MEDIUM", "enabled": true },
+  { "areaId": "charsadda", "minLevel": "MEDIUM", "enabled": true },
+  { "areaId": "nowshera",  "minLevel": "MEDIUM", "enabled": true }
+]

@@ -59,7 +59,7 @@ public class WebConfig implements WebMvcConfigurer {
     ) {
         registry.addMapping("/api/**")
                 .allowedOrigins(props.cors().allowedOrigins().toArray(String[]::new))
-                .allowedMethods("GET", "POST", "PATCH", "DELETE");
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE");
     }
 
     /**
