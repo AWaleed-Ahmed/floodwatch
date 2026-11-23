@@ -12,6 +12,12 @@ floodwatch/
 └── web/            React 19 + TypeScript + Vite
 ```
 
+## Project docs
+- [`docs/HANDOFF.md`](docs/HANDOFF.md) – what is built, every endpoint, what is left
+- [`CODING_RULE.md`](CODING_RULE.md) – Java style, engineering and testing rules
+- [`AGENT.md`](AGENT.md) – rules for AI agents and automation (no agent credit, no agent branch prefixes)
+- [`docs/CONTEXT_AND_PLAN.md`](docs/CONTEXT_AND_PLAN.md) – product context and theming plan for the UI
+
 ## Run it (two terminals)
 
 Backend – http://localhost:8090/api/health

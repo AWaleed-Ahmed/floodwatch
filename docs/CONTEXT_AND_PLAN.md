@@ -2,7 +2,7 @@
 
 This document is the input for choosing a visual theme for FloodWatch. It describes the product, its users, every screen and state, the semantic states that need consistent colour and icons, the constraints, the current frontend, and a plan with open questions.
 
-Sources: this repository (`main` at the time of writing, plus open PR #4 for risk levels) and the Phase 1 proposal and Phase 2 design report. Anything not built yet is marked **planned**.
+Sources: this repository (`main` as of 2026-11-23, after PRs #1–#11) and the Phase 1 proposal and Phase 2 design report. **The whole backend is built**; for each screen the status says whether its frontend page is built or still **planned**. See `docs/HANDOFF.md` for the full list of what is done and what is left.
 
 ---
 
@@ -41,7 +41,7 @@ The backend `Role` enum (`api/.../model/Role.java`) has `RESIDENT`, `RESPONDER`,
 | **Resident** (`resident1`, `resident2`) | Yes | Everything a Visitor does, plus subscribe to an area and receive alerts (browser pop-ups while the site is open, and an inbox). | + Alerts and inbox |
 | **Responder** (`responder1`, team `team-01`) | Yes | Log an incident, assign a team, move it Open → Assigned → Resolved. | + Incidents board |
 | **Relief Coordinator** (`coordinator1`) | Yes | Record supplies and stock, allocate quantities to incidents, see volunteers including phone numbers. | + Relief |
-| **Admin** (`admin1`) | Yes | Trigger DEMO alerts, manage shelters and alert rules, act on incidents (including resolving a false alarm directly from Open). | + Alerts (demo trigger), Incidents, Relief, shelter and rule management (planned) |
+| **Admin** (`admin1`) | Yes | Trigger DEMO alerts, manage shelters and alert rules, act on incidents (including resolving a false alarm directly from Open). | + Alerts (demo trigger), Incidents, Relief, shelter, area and alert-rule management (backend built; admin screens planned) |
 
 Login exists in the backend (`POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout`). Tokens last 8 hours and live only in server memory, so **a server restart logs everyone out**. The UI needs a calm "Your session ended, please log in again" state. There is no public sign-up, by design. The login screen in the frontend is **planned**.
 
@@ -91,11 +91,11 @@ The shared states listed below apply to every screen that loads data. They are n
 | Individual null values | The rain sum treats null as 0; discharge nulls leave gaps in the line |
 | Empty (no areas seeded) | Not handled specially today |
 
-### 3.2 Risk (`/risk`) – Feature 2, UC-02 – **planned** (backend in open PR #4, frontend is a placeholder)
+### 3.2 Risk (`/risk`) – Feature 2, UC-02 – backend **built**, page **planned** (placeholder)
 
 **Purpose.** Give a Low, Medium or High level for a chosen day, explain why in plain words, and point to official bulletins.
 
-**Data (PR #4).** `GET /api/risk?areaId=&date=` returns one `RiskAssessment`. `GET /api/risk/week?areaId=` returns 7 of them.
+**Data.** `GET /api/risk?areaId=&date=` returns one `RiskAssessment`. `GET /api/risk/week?areaId=` returns 7 of them.
 - `areaId`, `date` (`YYYY-MM-DD`, Pakistan day)
 - `level`: `LOW`, `MEDIUM`, `HIGH`, or **`null` (unknown)**
 - `discharge` (m³/s), `baseline` (m³/s, the median July–September discharge over the last five seasons), `ratio` (discharge ÷ baseline, a plain number such as 2.3), `rainMm` (mm for the day). Any of these can be `null`.
@@ -109,7 +109,7 @@ The shared states listed below apply to every screen that loads data. They are n
 
 **States.** Loading. Unknown level (grey "Unknown" badge with the reason). CACHED or SAMPLE `dataStatus` badge. No baseline yet (the reason says so). `400` for a date in the past or more than 6 days ahead. `404` for an unknown area. Backend down.
 
-### 3.3 Alerts and inbox (`/alerts`) – Feature 3, UC-03 – **planned** (placeholder)
+### 3.3 Alerts and inbox (`/alerts`) – Feature 3, UC-03 – backend **built**, page **planned** (placeholder)
 
 **Purpose.** A Resident subscribes to areas and gets alerts. An Admin can trigger a DEMO alert.
 
@@ -148,7 +148,7 @@ The shared states listed below apply to every screen that loads data. They are n
 - Map tiles fail (UC-04 A2): the list below still works.
 - Every shelter is SAMPLE today.
 
-### 3.5 Incidents board (`/incidents`) – Feature 5, UC-05 – **planned** (placeholder; `IncidentStatus` is built)
+### 3.5 Incidents board (`/incidents`) – Feature 5, UC-05 – backend **built**, page **planned** (placeholder)
 
 **Purpose.** Log incidents and track them through Open → Assigned → Resolved, with a history of every change.
 
@@ -167,7 +167,7 @@ The shared states listed below apply to every screen that loads data. They are n
 - `409` "This change is not allowed" for an illegal move.
 - `400` or `422` for invalid fields.
 
-### 3.6 Relief (`/relief`) – Feature 6, UC-S1 – **planned** (placeholder)
+### 3.6 Relief (`/relief`) – Feature 6, UC-S1 – backend **built**, page **planned** (placeholder)
 
 **Purpose.** Track supplies, their stock and allocations to incidents, and the volunteer list.
 
@@ -181,7 +181,7 @@ The shared states listed below apply to every screen that loads data. They are n
 **States.**
 - Not logged in. Wrong role.
 - Empty stock. Low stock.
-- **The allocation is more than the stock available** (rejected; the backend's business-rule error is `422`, endpoint not built yet).
+- **The allocation is more than the stock available** (rejected with `422` and a message such as "Only 587 pcs of Blankets left.").
 - Allocation to an incident that is not ASSIGNED.
 - Loading. Error.
 
@@ -195,7 +195,7 @@ The shared states listed below apply to every screen that loads data. They are n
 
 **States.** None beyond the language. It works offline once the page is loaded.
 
-### 3.8 Login – **planned** (backend built)
+### 3.8 Login – backend **built**, page **planned**
 
 **Purpose.** Staff and residents log in with seeded demo accounts.
 
@@ -209,9 +209,9 @@ The shared states listed below apply to every screen that loads data. They are n
 - Logged in: show `displayName` and `role` in the top bar, with Log out.
 - Session expired or server restarted: `401` on the next protected call.
 
-### 3.9 Support – **planned**
+### 3.9 Support – backend **built** (`GET /api/support`), button **planned**
 
-A "Support" button at the end of every page. It opens a new email to **mrfaheem010@gmail.com** (`mailto:` link). It needs no data and has no states beyond focus and hover. If the device has no mail app, the address should also be readable as text.
+A "Support" button at the end of every page. It opens a new email to **mrfaheem010@gmail.com** (`mailto:` link). It needs no data and has no states beyond focus and hover. If the device has no mail app, the address should also be readable as text. The button should read `GET /api/support`, which returns `{email, subject, mailto}` (for example `mailto:mrfaheem010@gmail.com?subject=FloodWatch%20support`), so the address can change through `SUPPORT_EMAIL` without a frontend release.
 
 ### 3.10 Placeholder page (current stand-in)
 
@@ -323,7 +323,7 @@ The current banner classes are `.banner-error` (red), `.banner-warn` (amber) and
 - Today there is **light mode only**. Colours are in `:root`, there is no `prefers-color-scheme` rule, and there is no toggle.
 - Dark mode helps at night and on battery. Map tiles and the shelter pins need a separate check in dark mode.
 
-### 5.6 Support button (planned)
+### 5.6 Support button (backend built, button planned)
 - It appears at the end of every page, above or inside the footer, in both languages.
 - It opens `mailto:mrfaheem010@gmail.com`.
 - It must not compete with emergency information. Support is for website help, not for emergencies. 1122 is.
@@ -414,7 +414,8 @@ font-family: system-ui, 'Segoe UI', Roboto, 'Noto Nastaliq Urdu', sans-serif;
 - The shelter pin `COLOURS` in `ShelterMapPage.tsx`, which are also used for the list dots through an inline `style`.
 
 **Placeholders and gaps.**
-- Not built yet: Risk, Alerts, Incidents and Relief pages; Login; the Support button.
+- Not built yet (frontend only; every endpoint exists): Risk, Alerts, Incidents and Relief pages; Login; the Support button; admin screens for shelters, areas, alert rules and demo alerts.
+- `web/src/api/client.ts` only has GET calls with no auth header; it needs login, token storage and POST/PATCH/PUT/DELETE helpers.
 - Not present: dark mode, a loaded Urdu font, a phone navigation pattern, skeleton loaders and icons. There is no icon set in the project.
 
 **How to theme without changing behaviour.**
@@ -434,7 +435,7 @@ The class names and components can stay as they are.
 3. **Dashboard**: chart palette, axes, grid, tooltip and the SAMPLE and CACHED banners. It is the most-used screen and is already built.
 4. **Shelters map**: pin shapes and colours, popup, list and dark-mode tiles. Already built.
 5. **Safety Info**: long-text reading in both languages. Already built.
-6. **Risk**: the risk badge, the reason and the 7-day strip. The backend is ready in PR #4.
+6. **Risk**: the risk badge, the reason and the 7-day strip. The backend is ready.
 7. **Login**, then **Alerts and inbox** (DEMO treatment, permission prompts).
 8. **Incidents board**, then **Relief** (staff screens, denser data, and the wrong-role and 409/422 states).
 
