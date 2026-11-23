@@ -1,0 +1,42 @@
+name: PR rules
+
+on:
+  pull_request:
+
+jobs:
+  agent-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Branch name has no agent prefix
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          if echo "$BRANCH" | grep -qiE '^(claude|codex|copilot|cursor|gpt|openai|gemini|devin|agent|ai|bot)([/_-]|$)'; then
+            echo "::error::Branch '$BRANCH' starts with an agent or tool name. Use feat/, fix/, docs/, test/, refactor/ or chore/ (see AGENT.md)."
+            exit 1
+          fi
+          echo "Branch name OK: $BRANCH"
+
+      - name: Commits and PR text credit no AI agent
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          pattern='co-authored-by:.*\b(claude|chatgpt|gpt|copilot|codex|gemini|cursor|devin|anthropic|openai)\b|generated (with|by) .*\b(claude|chatgpt|gpt|copilot|codex|gemini|ai)\b|\banthropic\b|\bopenai\b'
+          bad=$(git log --format='%H %B' "$BASE_SHA..$HEAD_SHA" | grep -iE "$pattern" || true)
+          if [ -n "$bad" ]; then
+            echo "::error::A commit credits an agent or has a Co-authored-by trailer (see AGENT.md):"
+            echo "$bad"
+            exit 1
+          fi
+          if printf '%s\n%s\n' "$PR_TITLE" "$PR_BODY" | grep -qiE "$pattern"; then
+            echo "::error::The PR title or description credits an agent (see AGENT.md)."
+            exit 1
+          fi
+          echo "No agent credit found."
