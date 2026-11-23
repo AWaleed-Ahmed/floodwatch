@@ -8,6 +8,7 @@
 package com.floodwatch.config;
 
 import java.util.List;
+import java.util.regex.Pattern;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 
@@ -21,6 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param storage   JSON storage settings
  * @param cors      browser origins allowed to call the API
  * @param auth      login settings
+ * @param support   public support contact
  * @author Abdullah Waleed Ahmed, Muhammad Rehan Haider, Syed Ehtisham Haider Bukhari, Faheem Ahmad Khan
  */
 
@@ -34,7 +36,8 @@ public record AppProperties
     Alerts alerts,
     Storage storage,
     Cors cors,
-    Auth auth
+    Auth auth,
+    Support support
 ) {
 
 
@@ -178,5 +181,40 @@ public record AppProperties
     ) {
 
 
+    }
+
+
+    /**
+     * Public support contact shown by GET /api/support. The address is checked when the settings load,
+     * so a wrong value stops the application at startup with a clear message. A blank value means the built-in default.
+     *
+     * @param email address residents write to
+     * @author Abdullah Waleed Ahmed, Muhammad Rehan Haider, Syed Ehtisham Haider Bukhari, Faheem Ahmad Khan
+     */
+
+
+    public record Support
+    (
+        String email
+    ) {
+
+
+        public static final String DEFAULT_EMAIL = "mrfaheem010@gmail.com";
+        private static final Pattern EMAIL = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*\\.[A-Za-z]{2,}$");
+
+        /**
+         * Fills in the default when the address is blank, then checks that the address is well formed.
+         *
+         * @throws IllegalArgumentException when the address is not a valid email address
+         */
+
+
+        public Support {
+            email = email == null || email.isBlank() ? DEFAULT_EMAIL : email.trim();
+            if (!EMAIL.matcher(email).matches())
+            {
+                throw new IllegalArgumentException("floodwatch.support.email must be a valid email address, such as name@example.com. Check SUPPORT_EMAIL.");
+            }
+        }
     }
 }
