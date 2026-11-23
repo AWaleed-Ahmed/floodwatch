@@ -1,0 +1,7 @@
+[
+  { "id": "sh-01", "areaId": "mingora",   "name": "Sample Shelter – Govt. School, Mingora",    "latitude": 34.7795, "longitude": 72.3550, "status": "OPEN",        "contact": "Rescue 1122", "capacity": 250, "sample": true },
+  { "id": "sh-02", "areaId": "mingora",   "name": "Sample Shelter – Community Hall, Saidu",    "latitude": 34.7470, "longitude": 72.3570, "status": "UNCONFIRMED", "contact": "Rescue 1122", "capacity": 120, "sample": true },
+  { "id": "sh-03", "areaId": "charsadda", "name": "Sample Shelter – College Ground, Charsadda", "latitude": 34.1530, "longitude": 71.7330, "status": "OPEN",        "contact": "Rescue 1122", "capacity": 400, "sample": true },
+  { "id": "sh-04", "areaId": "nowshera",  "name": "Sample Shelter – Relief Camp, Nowshera",     "latitude": 34.0080, "longitude": 71.9850, "status": "FULL",        "contact": "Rescue 1122", "capacity": 600, "sample": true },
+  { "id": "sh-05", "areaId": "nowshera",  "name": "Sample Shelter – Mosque Hall, Pabbi",        "latitude": 34.0080, "longitude": 71.7950, "status": "UNCONFIRMED", "contact": "Rescue 1122", "capacity": 150, "sample": true }
+]

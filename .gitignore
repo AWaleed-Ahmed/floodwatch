@@ -1,0 +1,16 @@
+# secrets
+.env
+.env.local
+
+# java
+api/target/
+*.class
+
+# node
+web/node_modules/
+web/dist/
+
+# editors
+.vscode/*
+!.vscode/extensions.json
+.idea/

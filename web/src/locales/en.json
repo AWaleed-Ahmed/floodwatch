@@ -1,0 +1,70 @@
+{
+  "app": {
+    "name": "FloodWatch"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "risk": "Risk",
+    "alerts": "Alerts",
+    "shelters": "Shelters",
+    "incidents": "Incidents",
+    "relief": "Relief",
+    "safety": "Safety Info"
+  },
+  "common": {
+    "area": "Area",
+    "source": "Source",
+    "unit": "Unit",
+    "updated": "Updated",
+    "loading": "Loading…",
+    "backendDown": "Cannot reach the FloodWatch server. Is the backend running?",
+    "disclaimer": "Modeled forecasts for learning only. This is not an official warning. Check PMD Flood Forecasting Division bulletins and call 1122 in an emergency.",
+    "footer": "FloodWatch – educational prototype (PBL, MCS NUST). Not an official warning service."
+  },
+  "status": {
+    "LIVE": "LIVE",
+    "CACHED": "CACHED",
+    "SAMPLE": "SAMPLE",
+    "UNAVAILABLE": "UNAVAILABLE"
+  },
+  "dashboard": {
+    "title": "Flood Monitoring Dashboard",
+    "rainTitle": "Rainfall – next 7 days (daily total)",
+    "riverTitle": "{{river}} – modeled discharge",
+    "rain": "Rain",
+    "rainChance": "Rain chance",
+    "discharge": "Discharge",
+    "sampleWarning": "Data unavailable: live sources could not be reached, so SAMPLE data is shown. Do not use it for decisions.",
+    "cachedNote": "Showing recently saved (cached) data. It refreshes automatically.",
+    "noRiver": "No modeled river at this point. Only rainfall is available."
+  },
+  "shelters": {
+    "title": "Emergency Shelters",
+    "sampleTag": "SAMPLE – not verified",
+    "status": "Status",
+    "capacity": "Capacity",
+    "contact": "Contact",
+    "directions": "Directions"
+  },
+  "shelterStatus": {
+    "OPEN": "Open",
+    "FULL": "Full",
+    "CLOSED": "Closed",
+    "UNCONFIRMED": "Unconfirmed"
+  },
+  "safety": {
+    "title": "Flood Safety Steps",
+    "steps": [
+      "Follow official warnings from PMD, NDMA/PDMA and Rescue 1122.",
+      "Move to higher ground early. Do not wait for water to reach your home.",
+      "Never walk or drive through flood water. Even 15 cm of moving water can knock a person down.",
+      "Switch off electricity and gas before you leave home.",
+      "Keep an emergency bag ready: water, medicines, ID cards, phone charger and a torch.",
+      "In an emergency, call 1122."
+    ],
+    "reviewNote": "Urdu text to be checked by a fluent reviewer before the final demo."
+  },
+  "placeholder": {
+    "text": "This feature is designed in the Phase 2 report and will be built in Phase 3."
+  }
+}
