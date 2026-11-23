@@ -7,11 +7,13 @@
 
 package com.floodwatch.repository;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
 
@@ -19,6 +21,7 @@ import tools.jackson.databind.json.JsonMapper;
  * Shared JSON-file logic for every entity. Keeps an in-memory copy; each write takes the lock,
  * uploads the whole file first and replaces the copy only after the upload succeeds, so a failed write leaves the
  * copy matching storage. Writes are serialised by the lock, so two saves cannot overwrite each other.
+ * A missing file starts empty; a damaged file is reported and never overwritten; files are capped at 5 MB.
  *
  * @param <T> entity type stored in the file
  * @author Abdullah Waleed Ahmed, Muhammad Rehan Haider, Syed Ehtisham Haider Bukhari, Faheem Ahmad Khan
@@ -27,6 +30,8 @@ import tools.jackson.databind.json.JsonMapper;
 
 public abstract class JsonFileRepository<T> implements Repository<T, String> {
 
+
+    static final long MAX_FILE_BYTES = 5L * 1024 * 1024;
 
     private final JsonStorage storage;
     private final JsonMapper json;
@@ -63,9 +68,22 @@ public abstract class JsonFileRepository<T> implements Repository<T, String> {
     }
 
     /**
-     * Loads the file into memory on first use and returns the in-memory list.
+     * Returns the name of the JSON file behind this repository.
+     *
+     * @return the file name
+     */
+
+
+    public String fileName() {
+        return fileName;
+    }
+
+    /**
+     * Loads the file into memory on first use and returns the in-memory list. If storage cannot be
+     * reached the error is thrown and the next call tries again; nothing empty is cached.
      *
      * @return the mutable in-memory list
+     * @throws CorruptDataException when the file exists but is not valid JSON for this entity
      */
 
 
@@ -75,9 +93,7 @@ public abstract class JsonFileRepository<T> implements Repository<T, String> {
         {
             if (cache == null)
             {
-                cache = storage.read(fileName)
-                        .map(text -> new ArrayList<T>(json.readValue(text, json.getTypeFactory().constructCollectionType(List.class, type))))
-                        .orElseGet(ArrayList::new);
+                cache = storage.read(fileName).map(this::parse).orElseGet(ArrayList::new);
             }
             return cache;
         }
@@ -88,9 +104,34 @@ public abstract class JsonFileRepository<T> implements Repository<T, String> {
     }
 
     /**
-     * Writes the whole list back to storage.
+     * Parses the file text into a list.
+     *
+     * @param text the file contents
+     * @return the parsed entities
+     * @throws CorruptDataException when the text is not valid JSON for this entity
+     */
+
+
+    private List<T> parse
+    (
+        String text
+    ) {
+        try
+        {
+            List<T> items = json.readValue(text, json.getTypeFactory().constructCollectionType(List.class, type));
+            return items == null ? new ArrayList<>() : new ArrayList<>(items);
+        }
+        catch (JacksonException e)
+        {
+            throw new CorruptDataException(fileName, e);
+        }
+    }
+
+    /**
+     * Writes the whole list back to storage after checking the size limit.
      *
      * @param items the items to write
+     * @throws StorageLimitException when the file would be larger than the limit
      */
 
 
@@ -98,7 +139,12 @@ public abstract class JsonFileRepository<T> implements Repository<T, String> {
     (
         List<T> items
     ) {
-        storage.write(fileName, json.writerWithDefaultPrettyPrinter().writeValueAsString(items));
+        String text = json.writerWithDefaultPrettyPrinter().writeValueAsString(items);
+        if (text.getBytes(StandardCharsets.UTF_8).length > MAX_FILE_BYTES)
+        {
+            throw new StorageLimitException(fileName, MAX_FILE_BYTES);
+        }
+        storage.write(fileName, text);
     }
 
     /**

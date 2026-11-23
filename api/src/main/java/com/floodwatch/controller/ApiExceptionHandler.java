@@ -8,6 +8,8 @@
 package com.floodwatch.controller;
 
 import com.floodwatch.integration.ExternalDataException;
+import com.floodwatch.repository.CorruptDataException;
+import com.floodwatch.repository.StorageLimitException;
 import com.floodwatch.service.ApiException;
 import com.floodwatch.service.PayloadTooLargeException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,6 +48,7 @@ public class ApiExceptionHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ApiExceptionHandler.class);
     private static final String GENERIC_ERROR = "Something went wrong on the server. Please try again.";
+    private static final String DATA_DAMAGED = "Some stored data is damaged and needs an administrator. Nothing was changed.";
     private static final String STORAGE_DOWN = "Data storage or an external service is unavailable. Please try again shortly.";
 
     private final Clock clock;
@@ -241,6 +244,43 @@ public class ApiExceptionHandler {
         HttpServletRequest request
     ) {
         return respond(HttpStatus.NOT_FOUND, "No endpoint at this path.", request, List.of());
+    }
+
+    /**
+     * Handles a damaged data file: the request fails safely and the file is left untouched.
+     *
+     * @param e       the damaged-file error
+     * @param request the failed request
+     * @return HTTP 503 telling the caller the data needs an administrator
+     */
+
+
+    @ExceptionHandler(CorruptDataException.class)
+    public ResponseEntity<ApiError> handleCorruptData
+    (
+        CorruptDataException e,
+        HttpServletRequest request
+    ) {
+        LOG.error("Damaged data file {} on {}", e.getFileName(), request.getRequestURI());
+        return respond(HttpStatus.SERVICE_UNAVAILABLE, DATA_DAMAGED, request, List.of());
+    }
+
+    /**
+     * Handles a save refused because a data file would pass the size limit.
+     *
+     * @param e       the size-limit error
+     * @param request the failed request
+     * @return HTTP 507 with the reason
+     */
+
+
+    @ExceptionHandler(StorageLimitException.class)
+    public ResponseEntity<ApiError> handleStorageLimit
+    (
+        StorageLimitException e,
+        HttpServletRequest request
+    ) {
+        return respond(HttpStatus.INSUFFICIENT_STORAGE, e.getMessage(), request, List.of());
     }
 
     /**
