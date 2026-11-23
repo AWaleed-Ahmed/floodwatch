@@ -52,6 +52,17 @@ Every Java file follows the team rules, enforced by `scripts/check-style.py` and
 With `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` empty in `.env`, the backend reads and writes `data/*.json`.
 Fill both in (and create the private bucket `floodwatch-data`, then upload the files from `data/`) to switch to Supabase.
 
+## Demo accounts
+Log in with `POST /api/auth/login`. Usernames are not case-sensitive. Passwords are case-sensitive.
+
+| Username | Password | Role |
+|---|---|---|
+| resident1 | resident1-demo | RESIDENT |
+| responder1 | responder1-demo | RESPONDER (team-01) |
+| coordinator1 | coordinator1-demo | COORDINATOR |
+| admin1 | admin1-demo | ADMIN |
+| resident2 | resident2-demo | RESIDENT |
+
 ## Notes
 - Port 8090 is used because 8080 is often taken; change `SERVER_PORT` and `VITE_API_BASE_URL` in `.env` together.
 - All weather/river/map APIs are free and keyless. Forecasts are educational only, not official warnings.

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "user-resident1",
+    "username": "resident1",
+    "passwordHash": "$2a$10$aXNb.E5q.GDFAkGNaa1RSO4NrlMK5MEUn8vHuvbbVOF0Ko1NDWW42",
+    "displayName": "Resident One",
+    "role": "RESIDENT",
+    "teamId": null
+  },
+  {
+    "id": "user-responder1",
+    "username": "responder1",
+    "passwordHash": "$2a$10$/Q2W0Snn128.LJMYXO1MbeVTfcAGLP5AEB5EDQrX2UKdXielZ8sk.",
+    "displayName": "Responder One",
+    "role": "RESPONDER",
+    "teamId": "team-01"
+  },
+  {
+    "id": "user-coordinator1",
+    "username": "coordinator1",
+    "passwordHash": "$2a$10$cUl2qG1EBxOtmocZKyVcP.hd9VQZ50UqF7/ekq1IJBiZzC5kQv7qe",
+    "displayName": "Coordinator One",
+    "role": "COORDINATOR",
+    "teamId": null
+  },
+  {
+    "id": "user-admin1",
+    "username": "admin1",
+    "passwordHash": "$2a$10$OWhT74JyeImu4VshJaSGCO0xqcdqSeit8ZaUalCLZhG7N7jLBEPIS",
+    "displayName": "Admin One",
+    "role": "ADMIN",
+    "teamId": null
+  },
+  {
+    "id": "user-resident2",
+    "username": "resident2",
+    "passwordHash": "$2a$10$FtZX7c7ODf.xaBu4Tz9Kc.CJaBRHDhma7oR4mjxf8z4yAtsOacYKW",
+    "displayName": "Resident Two",
+    "role": "RESIDENT",
+    "teamId": null
+  }
+]

@@ -20,6 +20,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param alerts    alert scheduler settings
  * @param storage   JSON storage settings
  * @param cors      browser origins allowed to call the API
+ * @param auth      login settings
  * @author Abdullah Waleed Ahmed, Muhammad Rehan Haider, Syed Ehtisham Haider Bukhari, Faheem Ahmad Khan
  */
 
@@ -32,8 +33,26 @@ public record AppProperties
     Cache cache,
     Alerts alerts,
     Storage storage,
-    Cors cors
+    Cors cors,
+    Auth auth
 ) {
+
+
+    /**
+     * Login settings.
+     *
+     * @param tokenTtlHours hours a login token stays valid after it is issued
+     * @author Abdullah Waleed Ahmed, Muhammad Rehan Haider, Syed Ehtisham Haider Bukhari, Faheem Ahmad Khan
+     */
+
+
+    public record Auth
+    (
+        int tokenTtlHours
+    ) {
+
+
+    }
 
 
     /**
