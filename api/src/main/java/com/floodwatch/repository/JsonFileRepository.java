@@ -17,7 +17,8 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Shared JSON-file logic for every entity. Keeps an in-memory copy; each write takes the lock,
- * updates the copy and uploads the whole file (write-through), so two saves cannot overwrite each other.
+ * uploads the whole file first and replaces the copy only after the upload succeeds, so a failed write leaves the
+ * copy matching storage. Writes are serialised by the lock, so two saves cannot overwrite each other.
  *
  * @param <T> entity type stored in the file
  * @author Abdullah Waleed Ahmed, Muhammad Rehan Haider, Syed Ehtisham Haider Bukhari, Faheem Ahmad Khan
@@ -144,10 +145,11 @@ public abstract class JsonFileRepository<T> implements Repository<T, String> {
         lock.lock();
         try
         {
-            List<T> items = load();
-            items.removeIf(existing -> idOf.apply(existing).equals(idOf.apply(item)));
-            items.add(item);
-            persist(items);
+            List<T> updated = new ArrayList<>(load());
+            updated.removeIf(existing -> idOf.apply(existing).equals(idOf.apply(item)));
+            updated.add(item);
+            persist(updated);
+            cache = updated;
             return item;
         }
         finally
@@ -171,10 +173,11 @@ public abstract class JsonFileRepository<T> implements Repository<T, String> {
         lock.lock();
         try
         {
-            List<T> items = load();
-            if (items.removeIf(existing -> idOf.apply(existing).equals(id)))
+            List<T> updated = new ArrayList<>(load());
+            if (updated.removeIf(existing -> idOf.apply(existing).equals(id)))
             {
-                persist(items);
+                persist(updated);
+                cache = updated;
             }
         }
         finally
