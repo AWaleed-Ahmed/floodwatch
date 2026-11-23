@@ -1,0 +1,5 @@
+[
+  { "id": "mingora",   "name": "Mingora (Swat)",       "latitude": 34.7717, "longitude": 72.3602, "riverName": "Swat River" },
+  { "id": "charsadda", "name": "Charsadda",            "latitude": 34.1482, "longitude": 71.7406, "riverName": "Swat River" },
+  { "id": "nowshera",  "name": "Nowshera",             "latitude": 34.0151, "longitude": 71.9747, "riverName": "Kabul River" }
+]
