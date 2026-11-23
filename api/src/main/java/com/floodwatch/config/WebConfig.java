@@ -7,8 +7,10 @@
 
 package com.floodwatch.config;
 
+import com.floodwatch.security.AuthInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 
@@ -24,19 +26,23 @@ public class WebConfig implements WebMvcConfigurer {
 
 
     private final AppProperties props;
+    private final AuthInterceptor authInterceptor;
 
     /**
      * Creates the web configuration.
      *
-     * @param props application settings holding the allowed origins
+     * @param props           application settings holding the allowed origins
+     * @param authInterceptor checks the login token on endpoints marked with RequiresRole
      */
 
 
     public WebConfig
     (
-        AppProperties props
+        AppProperties props,
+        AuthInterceptor authInterceptor
     ) {
         this.props = props;
+        this.authInterceptor = authInterceptor;
     }
 
     /**
@@ -54,5 +60,20 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
                 .allowedOrigins(props.cors().allowedOrigins().toArray(String[]::new))
                 .allowedMethods("GET", "POST", "PATCH", "DELETE");
+    }
+
+    /**
+     * Runs the login check before every /api endpoint. It does nothing for endpoints without RequiresRole.
+     *
+     * @param registry Spring's interceptor registry
+     */
+
+
+    @Override
+    public void addInterceptors
+    (
+        InterceptorRegistry registry
+    ) {
+        registry.addInterceptor(authInterceptor).addPathPatterns("/api/**");
     }
 }
