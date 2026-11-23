@@ -60,7 +60,7 @@ class OpenMeteoFloodHistoryAdapterTest {
                 new AppProperties.OpenMeteo("forecast", FLOOD_URL, "archive", "elevation"),
                 new AppProperties.Http("test", 1000),
                 new AppProperties.Cache(30),
-                new AppProperties.Alerts(10, 6),
+                new AppProperties.Alerts(10, 6, false, 30, 10),
                 new AppProperties.Storage("test", "", "", ""),
                 new AppProperties.Cors(List.of()),
                 new AppProperties.Auth(8));

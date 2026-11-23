@@ -112,17 +112,22 @@ public record AppProperties
 
 
     /**
-     * Alert scheduler settings.
+     * Alert scheduler and subscription settings.
      *
-     * @param checkIntervalMinutes minutes between alert rule checks
-     * @param cooldownHours        hours before the same alert may repeat
+     * @param checkIntervalMinutes    minutes between alert rule checks
+     * @param cooldownHours           hours before the same alert level may repeat for an area
+     * @param schedulerEnabled        false turns the scheduled rule checks off
+     * @param retentionDays           days an alert is kept before the scheduler deletes it
+     * @param maxSubscriptionsPerUser most areas one user may follow
      * @author Abdullah Waleed Ahmed, Muhammad Rehan Haider, Syed Ehtisham Haider Bukhari, Faheem Ahmad Khan
      */
 
 
     public record Alerts
     (
-        int checkIntervalMinutes, int cooldownHours
+        int checkIntervalMinutes, int cooldownHours,
+        boolean schedulerEnabled,
+        int retentionDays, int maxSubscriptionsPerUser
     ) {
 
 
