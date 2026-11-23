@@ -1,0 +1,5 @@
+[
+  { "id": "team-01", "name": "Rescue Team Swat",      "memberCount": 12 },
+  { "id": "team-02", "name": "Rescue Team Charsadda", "memberCount": 10 },
+  { "id": "team-03", "name": "Rescue Team Nowshera",  "memberCount": 8 }
+]
