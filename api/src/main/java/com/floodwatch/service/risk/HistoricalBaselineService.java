@@ -98,10 +98,11 @@ public class HistoricalBaselineService {
         Instant lastAttempt = lastAttempts.get(area.id());
         if (lastAttempt != null && now.isBefore(lastAttempt.plus(RETRY_INTERVAL)))
         {
-            return Optional.empty();
+            return stored;
         }
         lastAttempts.put(area.id(), now);
-        return fetchAndStore(area, today, now);
+        Optional<Baseline> refreshed = fetchAndStore(area, today, now);
+        return refreshed.isPresent() ? refreshed : stored;
     }
 
     /**
@@ -160,7 +161,7 @@ public class HistoricalBaselineService {
         LocalDate today,
         Instant now
     ) {
-        int lastSeason = today.getYear() - 1;
+        int lastSeason = today.getMonth().compareTo(Month.SEPTEMBER) > 0 ? today.getYear() : today.getYear() - 1;
         int firstSeason = lastSeason - BASELINE_SEASONS + 1;
         ForecastSeries series;
         try
