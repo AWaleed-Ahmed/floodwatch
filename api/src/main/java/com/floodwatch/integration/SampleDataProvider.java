@@ -1,3 +1,10 @@
+/*
+ * File:    SampleDataProvider.java
+ * Authors: Abdullah Waleed Ahmed, Muhammad Rehan Haider, Syed Ehtisham Haider Bukhari, Faheem Ahmad Khan
+ * Purpose: Clearly labelled made-up data used only when APIs are down and nothing is cached.
+ */
+
+
 package com.floodwatch.integration;
 
 import com.floodwatch.model.Area;
@@ -10,28 +17,65 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
-/** Clearly labelled made-up data, used only when an API is down and nothing is cached. */
+
+/**
+ * Builds clearly labelled sample data, used only when an API is down and nothing is cached.
+ *
+ * @author Abdullah Waleed Ahmed, Muhammad Rehan Haider, Syed Ehtisham Haider Bukhari, Faheem Ahmad Khan
+ */
+
+
 @Component
 public class SampleDataProvider {
 
-    static final String SOURCE = "Sample data (APIs unavailable)";
 
-    public ForecastSeries sampleRain(Area area) {
+    static final String SOURCE = "Sample data (APIs unavailable)";
+    private static final int FORECAST_DAYS = 7;
+    private static final int HOURS_PER_DAY = 24;
+    private static final double BASE_DISCHARGE = 300.0;
+    private static final double DAILY_RISE = 45.0;
+
+    /**
+     * Builds a week of hourly sample rainfall.
+     *
+     * @param area the area the sample is for
+     * @return a rainfall series with status SAMPLE
+     */
+
+
+    public ForecastSeries sampleRain
+    (
+        Area area
+    ) {
         Instant start = Instant.now().truncatedTo(ChronoUnit.HOURS);
         List<ForecastPoint> points = new ArrayList<>();
-        for (int h = 0; h < 7 * 24; h++) {
-            double mm = Math.max(0, 4 * Math.sin(h / 9.0)) ;
-            points.add(new ForecastPoint(start.plus(h, ChronoUnit.HOURS), Math.round(mm * 10) / 10.0, (int) Math.min(100, mm * 20)));
+        for (int hour = 0; hour < FORECAST_DAYS * HOURS_PER_DAY; hour++)
+        {
+            double mm = Math.max(0, 4 * Math.sin(hour / 9.0));
+            int chance = (int) Math.min(100, mm * 20);
+            points.add(new ForecastPoint(start.plus(hour, ChronoUnit.HOURS), Math.round(mm * 10) / 10.0, chance));
         }
         return new ForecastSeries(area.id(), SOURCE, "mm", Instant.now(), DataStatus.SAMPLE, points);
     }
 
-    public ForecastSeries sampleDischarge(Area area) {
+    /**
+     * Builds a week of daily sample discharge.
+     *
+     * @param area the area the sample is for
+     * @return a discharge series with status SAMPLE
+     */
+
+
+    public ForecastSeries sampleDischarge
+    (
+        Area area
+    ) {
         Instant start = Instant.now().truncatedTo(ChronoUnit.DAYS);
         List<ForecastPoint> points = new ArrayList<>();
-        for (int d = 0; d < 7; d++) {
-            points.add(new ForecastPoint(start.plus(d, ChronoUnit.DAYS), 300.0 + d * 45, null));
+        for (int day = 0; day < FORECAST_DAYS; day++)
+        {
+            points.add(new ForecastPoint(start.plus(day, ChronoUnit.DAYS), BASE_DISCHARGE + day * DAILY_RISE, null));
         }
-        return new ForecastSeries(area.id(), SOURCE, "m³/s", Instant.now(), DataStatus.SAMPLE, points);
+        return new ForecastSeries(area.id(), SOURCE, OpenMeteoFloodAdapter.UNIT, Instant.now(), DataStatus.SAMPLE, points);
     }
 }

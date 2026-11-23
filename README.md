@@ -26,6 +26,16 @@ cd web && npm install && npm run dev
 
 Tests: `cd api && ./mvnw test`
 
+Style check (must print 0 violations): `python3 scripts/check-style.py`
+
+## Java code style
+Every Java file follows the team rules, enforced by `scripts/check-style.py` and CI:
+- PascalCase types and files, camelCase methods and variables, UPPER_SNAKE_CASE constants.
+- Parameters: name on its own line, then `(`, parameters indented and grouped by type, then `) {`.
+- Allman braces for `if`/`else`/`for`/`while`/`try`/`catch`/`finally`; declarations keep `{` on the same line.
+- File header + Javadoc on every class, constructor and method; no `//` comments.
+- 2 blank lines after the header, around class Javadoc and after every Javadoc; files end at the final `}`.
+
 ## What works now
 | Feature | Status | Owner |
 |---|---|---|

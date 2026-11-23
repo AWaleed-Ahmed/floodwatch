@@ -1,3 +1,10 @@
+/*
+ * File:    OpenMeteoFloodAdapter.java
+ * Authors: Abdullah Waleed Ahmed, Muhammad Rehan Haider, Syed Ehtisham Haider Bukhari, Faheem Ahmad Khan
+ * Purpose: Adapter that turns Open-Meteo flood (GloFAS) JSON into a ForecastSeries.
+ */
+
+
 package com.floodwatch.integration;
 
 import com.floodwatch.config.AppProperties;
@@ -17,53 +24,110 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
-/** Adapter: turns Open-Meteo's flood (GloFAS) JSON into our ForecastSeries model. */
+
+/**
+ * Adapter: calls the Open-Meteo flood API (GloFAS) and converts its JSON into our ForecastSeries model.
+ * A point that is not on a modeled river returns an UNAVAILABLE series instead of failing.
+ *
+ * @author Abdullah Waleed Ahmed, Muhammad Rehan Haider, Syed Ehtisham Haider Bukhari, Faheem Ahmad Khan
+ */
+
+
 @Component
 public class OpenMeteoFloodAdapter implements RiverDataProvider {
 
+
     static final String SOURCE = "Open-Meteo Flood API (GloFAS)";
+    static final String UNIT = "m³/s";
+    private static final String QUERY = "&daily=river_discharge&forecast_days=7";
+
     private final RestClient http;
     private final JsonMapper json;
     private final JsonValidator validator;
     private final String baseUrl;
 
-    public OpenMeteoFloodAdapter(RestClient http, JsonMapper json, JsonValidator validator, AppProperties props) {
+    /**
+     * Creates the adapter.
+     *
+     * @param http      shared HTTP client
+     * @param json      JSON parser
+     * @param validator checks the response before use
+     * @param props     settings holding the flood API URL
+     */
+
+
+    public OpenMeteoFloodAdapter
+    (
+        RestClient http,
+        JsonMapper json,
+        JsonValidator validator,
+        AppProperties props
+    ) {
         this.http = http;
         this.json = json;
         this.validator = validator;
         this.baseUrl = props.openMeteo().floodUrl();
     }
 
+    /**
+     * Fetches the 7-day modeled discharge forecast for an area.
+     *
+     * @param area the area to forecast
+     * @return the discharge series with status LIVE, or UNAVAILABLE off the river network
+     * @throws ExternalDataException when the call fails or the data is invalid
+     */
+
+
     @Override
-    public ForecastSeries dailyDischarge(Area area) {
-        String url = baseUrl + "?latitude=" + area.latitude() + "&longitude=" + area.longitude()
-                + "&daily=river_discharge&forecast_days=7";
-        try {
+    public ForecastSeries dailyDischarge
+    (
+        Area area
+    ) {
+        String url = baseUrl + "?latitude=" + area.latitude() + "&longitude=" + area.longitude() + QUERY;
+        try
+        {
             JsonNode root = json.readTree(http.get().uri(url).retrieve().body(String.class));
             return toSeries(area, root);
-        } catch (RestClientException | JacksonException e) {
+        }
+        catch (RestClientException | JacksonException e)
+        {
             throw new ExternalDataException("Flood API call failed: " + e.getMessage(), e);
         }
     }
 
-    ForecastSeries toSeries(Area area, JsonNode root) {
+    /**
+     * Converts a validated Open-Meteo flood response into a series.
+     *
+     * @param area the area the response belongs to
+     * @param root the parsed JSON response
+     * @return the discharge series, or an UNAVAILABLE series when every value is null
+     * @throws ExternalDataException when required fields are missing or out of date
+     */
+
+
+    ForecastSeries toSeries
+    (
+        Area area,
+        JsonNode root
+    ) {
         validator.requireFields(root, "daily.time", "daily.river_discharge");
         JsonNode times = root.path("daily").path("time");
         JsonNode flow = root.path("daily").path("river_discharge");
         validator.requireSameLength(times, flow, "daily discharge");
         List<ForecastPoint> points = new ArrayList<>();
         boolean anyValue = false;
-        for (int i = 0; i < times.size(); i++) {
-            Instant t = LocalDate.parse(times.get(i).asString()).atStartOfDay().toInstant(ZoneOffset.UTC);
-            Double m3s = flow.get(i).isNull() ? null : flow.get(i).asDouble();
-            anyValue |= m3s != null;
-            points.add(new ForecastPoint(t, m3s, null));
+        for (int i = 0; i < times.size(); i++)
+        {
+            Instant time = LocalDate.parse(times.get(i).asString()).atStartOfDay().toInstant(ZoneOffset.UTC);
+            Double cubicMetres = flow.get(i).isNull() ? null : flow.get(i).asDouble();
+            anyValue = anyValue || cubicMetres != null;
+            points.add(new ForecastPoint(time, cubicMetres, null));
         }
-        if (!anyValue) {
-            // The point is not on a modeled river (use case UC-01, alternative flow A2)
-            return ForecastSeries.unavailable(area.id(), SOURCE, "m³/s");
+        if (!anyValue)
+        {
+            return ForecastSeries.unavailable(area.id(), SOURCE, UNIT);
         }
         validator.requireNearNow(points.get(0).time());
-        return new ForecastSeries(area.id(), SOURCE, "m³/s", Instant.now(), DataStatus.LIVE, points);
+        return new ForecastSeries(area.id(), SOURCE, UNIT, Instant.now(), DataStatus.LIVE, points);
     }
 }
