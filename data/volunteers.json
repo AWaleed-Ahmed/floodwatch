@@ -1,0 +1,6 @@
+[
+  { "id": "vol-01", "name": "Volunteer One",   "phone": "+92 000 0000001", "skills": ["first aid", "driving"],  "teamId": "team-01", "available": true },
+  { "id": "vol-02", "name": "Volunteer Two",   "phone": "+92 000 0000002", "skills": ["boat handling"],         "teamId": "team-02", "available": true },
+  { "id": "vol-03", "name": "Volunteer Three", "phone": "+92 000 0000003", "skills": ["cooking", "logistics"],  "teamId": null,      "available": false },
+  { "id": "vol-04", "name": "Volunteer Four",  "phone": "+92 000 0000004", "skills": ["translation"],           "teamId": "team-03", "available": true }
+]

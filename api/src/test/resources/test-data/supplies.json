@@ -1,0 +1,7 @@
+[
+  { "id": "sup-water",   "item": "Drinking water",   "unit": "litres", "available": 5000, "allocated": 0, "version": 1, "updatedAt": "2026-09-01T06:00:00Z" },
+  { "id": "sup-food",    "item": "Food packs",       "unit": "packs",  "available": 800,  "allocated": 0, "version": 1, "updatedAt": "2026-09-01T06:00:00Z" },
+  { "id": "sup-blanket", "item": "Blankets",         "unit": "pcs",    "available": 600,  "allocated": 0, "version": 1, "updatedAt": "2026-09-01T06:00:00Z" },
+  { "id": "sup-tent",    "item": "Tents",            "unit": "pcs",    "available": 120,  "allocated": 0, "version": 1, "updatedAt": "2026-09-01T06:00:00Z" },
+  { "id": "sup-firstaid", "item": "First-aid kits",  "unit": "kits",   "available": 90,   "allocated": 0, "version": 1, "updatedAt": "2026-09-01T06:00:00Z" }
+]
