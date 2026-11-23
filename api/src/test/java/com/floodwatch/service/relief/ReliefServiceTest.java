@@ -25,6 +25,7 @@ import com.floodwatch.repository.SupplyRepository;
 import com.floodwatch.service.BusinessRuleException;
 import com.floodwatch.service.ConflictException;
 import com.floodwatch.service.NotFoundException;
+import com.floodwatch.service.ServiceUnavailableException;
 import com.floodwatch.service.incidents.IncidentService;
 import java.util.List;
 import java.util.UUID;
@@ -74,6 +75,9 @@ class ReliefServiceTest {
 
     @Autowired
     private AllocationRepository allocationRepository;
+
+    @Autowired
+    private FailingJsonStorage storage;
 
     /**
      * Adds a supply with a unique name.
@@ -361,5 +365,128 @@ class ReliefServiceTest {
         Supply after = supplyRepository.findById(supply.id()).orElseThrow();
         assertEquals(0, after.available());
         assertEquals(1, after.allocated());
+    }
+
+    /**
+     * Resolves an incident while the release's stock write fails. The incident change stands, and the
+     * allocation is left RESERVED with the stock unchanged, because the release undid its own first write.
+     *
+     * @param assigned the assigned incident to resolve
+     */
+
+
+    private void resolveWhileStockWriteFails
+    (
+        Incident assigned
+    ) {
+        storage.failWrites(3);
+        try
+        {
+            resolve(assigned);
+        }
+        finally
+        {
+            storage.disarm();
+        }
+    }
+
+    /**
+     * Allocating when the stock write fails leaves no allocation behind and the stock unchanged, and gives 503.
+     */
+
+
+    @Test
+    void allocateWhenStockWriteFailsLeavesNothingBehind() {
+        Supply supply = newSupply(10);
+        Incident incident = assignedIncident();
+        storage.failWrites(2);
+        try
+        {
+            assertThrows(ServiceUnavailableException.class,
+                    () -> allocations.allocate(supply.id(), incident.id(), 3, COORDINATOR));
+        }
+        finally
+        {
+            storage.disarm();
+        }
+        assertEquals(List.of(), allocations.list(incident.id()));
+        Supply after = supplyRepository.findById(supply.id()).orElseThrow();
+        assertEquals(10, after.available());
+        assertEquals(0, after.allocated());
+    }
+
+    /**
+     * Delivering when the allocation write fails restores the stock, so both records are as they were.
+     */
+
+
+    @Test
+    void deliverWhenAllocationWriteFailsLeavesBothRecordsUnchanged() {
+        Supply supply = newSupply(10);
+        Incident incident = assignedIncident();
+        Allocation reserved = allocations.allocate(supply.id(), incident.id(), 4, COORDINATOR);
+        storage.failWrites(2);
+        try
+        {
+            assertThrows(ServiceUnavailableException.class, () -> allocations.deliver(reserved.id()));
+        }
+        finally
+        {
+            storage.disarm();
+        }
+        Allocation after = allocationRepository.findById(reserved.id()).orElseThrow();
+        assertEquals(AllocationStatus.RESERVED, after.status());
+        Supply stock = supplyRepository.findById(supply.id()).orElseThrow();
+        assertEquals(6, stock.available());
+        assertEquals(4, stock.allocated());
+    }
+
+    /**
+     * A release whose stock write fails puts the allocation back to RESERVED. A retry then returns the stock
+     * exactly once, and a further retry changes nothing.
+     */
+
+
+    @Test
+    void releaseWhenStockWriteFailsThenRetryReturnsStockOnce() {
+        Supply supply = newSupply(10);
+        Incident assigned = assignedIncident();
+        Allocation reserved = allocations.allocate(supply.id(), assigned.id(), 3, COORDINATOR);
+        resolveWhileStockWriteFails(assigned);
+
+        assertEquals(AllocationStatus.RESERVED, allocationRepository.findById(reserved.id()).orElseThrow().status());
+        assertEquals(7, supplyRepository.findById(supply.id()).orElseThrow().available());
+
+        allocations.releaseFor(assigned.id());
+        assertEquals(10, supplyRepository.findById(supply.id()).orElseThrow().available());
+        assertEquals(AllocationStatus.RELEASED, allocationRepository.findById(reserved.id()).orElseThrow().status());
+
+        Supply afterRetry = supplyRepository.findById(supply.id()).orElseThrow();
+        allocations.releaseFor(assigned.id());
+        assertEquals(afterRetry, supplyRepository.findById(supply.id()).orElseThrow());
+    }
+
+    /**
+     * releaseStuckReservations repairs a RESERVED allocation on a RESOLVED incident, and a second run changes nothing.
+     */
+
+
+    @Test
+    void releaseStuckReservationsRepairsOnceThenDoesNothing() {
+        Supply supply = newSupply(10);
+        Incident assigned = assignedIncident();
+        allocations.allocate(supply.id(), assigned.id(), 3, COORDINATOR);
+        resolveWhileStockWriteFails(assigned);
+        assertEquals(7, supplyRepository.findById(supply.id()).orElseThrow().available());
+
+        allocations.releaseStuckReservations();
+        Supply repaired = supplyRepository.findById(supply.id()).orElseThrow();
+        assertEquals(10, repaired.available());
+        assertEquals(0, repaired.allocated());
+        assertEquals(1, allocations.list(assigned.id()).stream()
+                .filter(a -> a.status() == AllocationStatus.RELEASED).count());
+
+        allocations.releaseStuckReservations();
+        assertEquals(repaired, supplyRepository.findById(supply.id()).orElseThrow());
     }
 }

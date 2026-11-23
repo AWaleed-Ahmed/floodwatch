@@ -7,8 +7,6 @@
 
 package com.floodwatch.service.relief;
 
-import com.floodwatch.repository.JsonStorage;
-import com.floodwatch.support.InMemoryJsonStorage;
 import com.floodwatch.support.MutableClock;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +36,7 @@ public class ReliefTestConfig {
     private static final Instant START = Instant.parse("2026-09-01T06:00:00Z");
 
     /**
-     * Creates in-memory storage holding a copy of the seed files.
+     * Creates in-memory storage holding a copy of the seed files, which tests can make fail on chosen writes.
      *
      * @return storage that keeps every file in memory
      */
@@ -46,8 +44,8 @@ public class ReliefTestConfig {
 
     @Bean
     @Primary
-    public JsonStorage reliefInMemoryStorage() {
-        InMemoryJsonStorage storage = new InMemoryJsonStorage();
+    public FailingJsonStorage reliefInMemoryStorage() {
+        FailingJsonStorage storage = new FailingJsonStorage();
         for (String file : SEED_FILES)
         {
             storage.write(file, seed(file));
