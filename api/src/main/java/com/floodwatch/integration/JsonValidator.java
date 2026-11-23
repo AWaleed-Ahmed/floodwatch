@@ -7,6 +7,7 @@
 
 package com.floodwatch.integration;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,22 @@ public class JsonValidator {
 
 
     private static final long MAX_DAYS_FROM_NOW = 2;
+
+    private final Clock clock;
+
+    /**
+     * Creates the validator.
+     *
+     * @param clock source of the current time
+     */
+
+
+    public JsonValidator
+    (
+        Clock clock
+    ) {
+        this.clock = clock;
+    }
 
     /**
      * Checks that every dot-separated field path exists and is not null.
@@ -87,7 +104,7 @@ public class JsonValidator {
     (
         Instant firstTime
     ) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         boolean tooOld = firstTime.isBefore(now.minus(MAX_DAYS_FROM_NOW, ChronoUnit.DAYS));
         boolean tooNew = firstTime.isAfter(now.plus(MAX_DAYS_FROM_NOW, ChronoUnit.DAYS));
         if (tooOld || tooNew)

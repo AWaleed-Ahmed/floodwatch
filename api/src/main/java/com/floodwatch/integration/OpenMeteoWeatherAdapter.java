@@ -12,6 +12,7 @@ import com.floodwatch.model.Area;
 import com.floodwatch.model.DataStatus;
 import com.floodwatch.model.ForecastPoint;
 import com.floodwatch.model.ForecastSeries;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -43,6 +44,7 @@ public class OpenMeteoWeatherAdapter implements WeatherDataProvider {
     private final JsonMapper json;
     private final JsonValidator validator;
     private final String baseUrl;
+    private final Clock clock;
 
     /**
      * Creates the adapter.
@@ -50,6 +52,7 @@ public class OpenMeteoWeatherAdapter implements WeatherDataProvider {
      * @param http      shared HTTP client
      * @param json      JSON parser
      * @param validator checks the response before use
+     * @param clock     source of the current time
      * @param props     settings holding the forecast URL
      */
 
@@ -59,11 +62,13 @@ public class OpenMeteoWeatherAdapter implements WeatherDataProvider {
         RestClient http,
         JsonMapper json,
         JsonValidator validator,
+        Clock clock,
         AppProperties props
     ) {
         this.http = http;
         this.json = json;
         this.validator = validator;
+        this.clock = clock;
         this.baseUrl = props.openMeteo().forecastUrl();
     }
 
@@ -125,6 +130,6 @@ public class OpenMeteoWeatherAdapter implements WeatherDataProvider {
         {
             validator.requireNearNow(points.get(0).time());
         }
-        return new ForecastSeries(area.id(), SOURCE, "mm", Instant.now(), DataStatus.LIVE, points);
+        return new ForecastSeries(area.id(), SOURCE, "mm", clock.instant(), DataStatus.LIVE, points);
     }
 }

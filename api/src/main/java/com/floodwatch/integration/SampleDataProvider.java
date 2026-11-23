@@ -11,6 +11,7 @@ import com.floodwatch.model.Area;
 import com.floodwatch.model.DataStatus;
 import com.floodwatch.model.ForecastPoint;
 import com.floodwatch.model.ForecastSeries;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -35,6 +36,22 @@ public class SampleDataProvider {
     private static final double BASE_DISCHARGE = 300.0;
     private static final double DAILY_RISE = 45.0;
 
+    private final Clock clock;
+
+    /**
+     * Creates the provider.
+     *
+     * @param clock source of the current time
+     */
+
+
+    public SampleDataProvider
+    (
+        Clock clock
+    ) {
+        this.clock = clock;
+    }
+
     /**
      * Builds a week of hourly sample rainfall.
      *
@@ -47,7 +64,7 @@ public class SampleDataProvider {
     (
         Area area
     ) {
-        Instant start = Instant.now().truncatedTo(ChronoUnit.HOURS);
+        Instant start = clock.instant().truncatedTo(ChronoUnit.HOURS);
         List<ForecastPoint> points = new ArrayList<>();
         for (int hour = 0; hour < FORECAST_DAYS * HOURS_PER_DAY; hour++)
         {
@@ -55,7 +72,7 @@ public class SampleDataProvider {
             int chance = (int) Math.min(100, mm * 20);
             points.add(new ForecastPoint(start.plus(hour, ChronoUnit.HOURS), Math.round(mm * 10) / 10.0, chance));
         }
-        return new ForecastSeries(area.id(), SOURCE, "mm", Instant.now(), DataStatus.SAMPLE, points);
+        return new ForecastSeries(area.id(), SOURCE, "mm", clock.instant(), DataStatus.SAMPLE, points);
     }
 
     /**
@@ -70,12 +87,12 @@ public class SampleDataProvider {
     (
         Area area
     ) {
-        Instant start = Instant.now().truncatedTo(ChronoUnit.DAYS);
+        Instant start = clock.instant().truncatedTo(ChronoUnit.DAYS);
         List<ForecastPoint> points = new ArrayList<>();
         for (int day = 0; day < FORECAST_DAYS; day++)
         {
             points.add(new ForecastPoint(start.plus(day, ChronoUnit.DAYS), BASE_DISCHARGE + day * DAILY_RISE, null));
         }
-        return new ForecastSeries(area.id(), SOURCE, OpenMeteoFloodAdapter.UNIT, Instant.now(), DataStatus.SAMPLE, points);
+        return new ForecastSeries(area.id(), SOURCE, OpenMeteoFloodAdapter.UNIT, clock.instant(), DataStatus.SAMPLE, points);
     }
 }

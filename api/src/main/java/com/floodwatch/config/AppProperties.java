@@ -59,14 +59,16 @@ public record AppProperties
     /**
      * Outgoing HTTP settings.
      *
-     * @param userAgent User-Agent header sent to external APIs
+     * @param userAgent    User-Agent header sent to external APIs
+     * @param maxBodyBytes largest request body the API accepts, in bytes
      * @author Abdullah Waleed Ahmed, Muhammad Rehan Haider, Syed Ehtisham Haider Bukhari, Faheem Ahmad Khan
      */
 
 
     public record Http
     (
-        String userAgent
+        String userAgent,
+        long maxBodyBytes
     ) {
 
 

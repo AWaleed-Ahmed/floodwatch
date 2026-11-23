@@ -12,6 +12,7 @@ import com.floodwatch.model.Area;
 import com.floodwatch.model.DataStatus;
 import com.floodwatch.model.ForecastPoint;
 import com.floodwatch.model.ForecastSeries;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -45,6 +46,7 @@ public class OpenMeteoFloodAdapter implements RiverDataProvider {
     private final JsonMapper json;
     private final JsonValidator validator;
     private final String baseUrl;
+    private final Clock clock;
 
     /**
      * Creates the adapter.
@@ -52,6 +54,7 @@ public class OpenMeteoFloodAdapter implements RiverDataProvider {
      * @param http      shared HTTP client
      * @param json      JSON parser
      * @param validator checks the response before use
+     * @param clock     source of the current time
      * @param props     settings holding the flood API URL
      */
 
@@ -61,11 +64,13 @@ public class OpenMeteoFloodAdapter implements RiverDataProvider {
         RestClient http,
         JsonMapper json,
         JsonValidator validator,
+        Clock clock,
         AppProperties props
     ) {
         this.http = http;
         this.json = json;
         this.validator = validator;
+        this.clock = clock;
         this.baseUrl = props.openMeteo().floodUrl();
     }
 
@@ -125,9 +130,9 @@ public class OpenMeteoFloodAdapter implements RiverDataProvider {
         }
         if (!anyValue)
         {
-            return ForecastSeries.unavailable(area.id(), SOURCE, UNIT);
+            return ForecastSeries.unavailable(area.id(), SOURCE, UNIT, clock.instant());
         }
         validator.requireNearNow(points.get(0).time());
-        return new ForecastSeries(area.id(), SOURCE, UNIT, Instant.now(), DataStatus.LIVE, points);
+        return new ForecastSeries(area.id(), SOURCE, UNIT, clock.instant(), DataStatus.LIVE, points);
     }
 }
