@@ -1,1 +1,20 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "General Sans", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Clash Display", "General Sans", system-ui, sans-serif;
+
+  /* River palette: deep teal at the top fading to misty blue-white at the bottom. */
+  --color-river-950: #01191b;
+  --color-river-900: #032a2d;
+  --color-river-800: #0c3f42;
+  --color-river-600: #2f6f75;
+  --color-river-400: #6ea3a9;
+  --color-river-200: #a9c8cf;
+  --color-river-100: #cfe0e5;
+  --color-river-50: #e8f0f3;
+}
+
+body {
+  @apply bg-river-50 font-sans text-river-950 antialiased;
+}
