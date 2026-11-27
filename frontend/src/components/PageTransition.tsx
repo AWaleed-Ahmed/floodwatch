@@ -62,6 +62,9 @@ const PAGE_LABELS: Record<string, string> = {
   '/login': 'menu.login',
 }
 
+/** Pages in the order the menu lists them; the arch comes from the side you are moving towards. */
+const MENU_ORDER = ['/dashboard', '/risk', '/shelters', '/safety', '/alerts', '/incidents', '/relief', '/login']
+
 let runner: ((to: string) => void) | null = null
 
 /**
@@ -119,10 +122,11 @@ export default function PageTransition() {
 
   useEffect(() => {
     /**
-     * Page to page: a wide black arch swoops up from the bottom in one quick
-     * motion with the next page's name riding in it, covers the page, the route
-     * changes underneath, and the cover fades away in place. Transform and
-     * opacity only.
+     * Page to page: a wide black arch swoops over the page in one quick motion
+     * with the next page's name riding in it (up from the bottom when moving
+     * down the menu, down from the top when moving back up), covers the page,
+     * the route changes underneath, and the cover fades away in place.
+     * Transform and opacity only.
      */
     const runArch = async (to: string) => {
       const arch = archRef.current
@@ -145,12 +149,27 @@ export default function PageTransition() {
       const vh = window.innerHeight
       const curve = vh * ARCH_CURVE
       const at = (y: number) => ({ transform: `translate3d(0, ${y}px, 0)` })
+
+      /*
+       * Moving further down the menu, the arch rises from the bottom (curve on
+       * top). Moving back up the menu, it drops from the top, flipped (curve
+       * underneath). Pages not in the menu count as coming from the top of it.
+       */
+      const fromIndex = MENU_ORDER.indexOf(pathRef.current)
+      const toIndex = MENU_ORDER.indexOf(to)
+      const fromTop = fromIndex > toIndex && toIndex !== -1
+      const radius = `${ARCH_CURVE * 100}svh`
+      arch.style.borderRadius = fromTop ? `0 0 50% 50% / 0 0 ${radius} ${radius}` : `50% 50% 0 0 / ${radius} ${radius} 0 0`
+      /* The name sits where the screen's centre will be once the arch covers it. */
+      label.style.top = fromTop ? '50svh' : `${50 + ARCH_CURVE * 100}svh`
+      const path = fromTop ? [at(-(vh + curve)), at(0)] : [at(vh), at(-curve)]
+
       root.style.pointerEvents = 'none'
       arch.style.visibility = 'visible'
       try {
-        /* One swoop from below the screen to fully covering it (its curved top ends just above the screen). */
+        /* One swoop from off-screen to fully covering it (the curve ends just past the screen edge). */
         label.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 140, easing: 'ease-out', fill: 'forwards' })
-        await arch.animate([at(vh), at(-curve)], { duration: 520, easing: 'cubic-bezier(0.7, 0, 0.2, 1)', fill: 'forwards' }).finished
+        await arch.animate(path, { duration: 520, easing: 'cubic-bezier(0.7, 0, 0.2, 1)', fill: 'forwards' }).finished
         await page
         navigate(to)
         window.scrollTo(0, 0)
@@ -316,7 +335,7 @@ export default function PageTransition() {
       >
         <span
           ref={labelRef}
-          className="absolute inset-x-0 top-[74svh] -translate-y-1/2 text-center font-display text-[clamp(2.1rem,5.8vw,4.6rem)] leading-none tracking-[-0.02em] text-paper opacity-0 ur:leading-[1.6] ur:tracking-normal"
+          className="absolute inset-x-0 -translate-y-1/2 text-center font-display text-[clamp(2.1rem,5.8vw,4.6rem)] leading-none tracking-[-0.02em] text-paper opacity-0 ur:leading-[1.6] ur:tracking-normal"
         />
       </div>
     </>
