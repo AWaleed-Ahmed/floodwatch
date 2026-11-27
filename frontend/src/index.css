@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Manrope", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Clash Display", "Manrope", system-ui, sans-serif;
+
+  /* Ink palette: paper white at the top fading to dark graphite at the bottom. */
+  --color-ink-950: #0a0a0a;
+  --color-ink-800: #2b2b2b;
+  --color-ink-600: #5c5c5c;
+  --color-ink-400: #8f8f8f;
+  --color-ink-200: #c7c7c7;
+  --color-ink-100: #e4e4e4;
+  --color-ink-50: #f5f5f5;
+  --color-paper: #ffffff;
+
+  /* Damped spring curves (sampled from a real spring).
+     --ease-spring: damping 0.74, a subtle overshoot that peaks at 1.03 and settles. */
+  --ease-spring: linear(0, 0.033, 0.1146, 0.2236, 0.3441, 0.4648, 0.5782, 0.6797, 0.767, 0.8396, 0.8978, 0.9428, 0.9763, 1.0001, 1.0159, 1.0254, 1.0302, 1.0315, 1.0305, 1.0279, 1.0244, 1.0206, 1.0168, 1.0133, 1.0101, 1.0073, 1.005, 1.0032, 1.0018, 1.0007, 1, 0.9995, 0.9992, 0.999, 0.999, 0.999, 0.9991, 0.9992, 0.9994, 0.9995, 1);
+}
+
+body {
+  @apply bg-paper font-sans text-ink-950 antialiased;
+}
