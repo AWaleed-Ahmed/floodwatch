@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
-import { whenIdle } from './useSwoosh.ts'
+import { whenIdle } from './whenIdle.ts'
 
 /** The WebGL terrain is the heaviest part of the page, so its code loads in a separate chunk. */
 const Topography = lazy(() => import('./Component/Topography.tsx'))
@@ -50,7 +50,9 @@ export default function Background({ children }: BackgroundProps) {
               clickEffect="pulse"
               autoPulse={5}
               markers="none"
-              dpr={1.25}
+              dpr={Math.min(window.devicePixelRatio || 1, 1.5)}
+              maxFps={60}
+              meshScale={1}
             />
           </Suspense>
         )}

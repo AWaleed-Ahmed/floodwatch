@@ -53,6 +53,10 @@ export interface TopographyProps {
   intro?: boolean;
   lightMode?: boolean;
   dpr?: number;
+  /** Highest frames per second to draw (the simulation still runs in real time). Lower is cheaper. */
+  maxFps?: number;
+  /** Mesh coarseness: 1 is the default grid, 2 uses cells twice as wide (about a quarter of the triangles). */
+  meshScale?: number;
   className?: string;
   style?: CSSProperties;
 }
@@ -807,6 +811,8 @@ const Topography = ({
   intro = true,
   lightMode = false,
   dpr,
+  maxFps = 60,
+  meshScale = 1,
   className = '',
   style
 }: TopographyProps) => {
@@ -846,7 +852,9 @@ const Topography = ({
     glitch: clamp(glitch, 0, 1),
     intro,
     lightMode,
-    dpr
+    dpr,
+    maxFps: clamp(maxFps, 10, 120),
+    meshScale: clamp(meshScale, 0.5, 4)
   };
   const settingsRef = useRef(settings);
   useLayoutEffect(() => {
@@ -1032,6 +1040,10 @@ const Topography = ({
     let ready = !parallel;
     let disposed = false;
     let nextAutoPulse = 1.5;
+    /** Frame cap bookkeeping: the display's frame interval (smoothed) and how many display frames were skipped. */
+    let displayInterval = 1000 / 60;
+    let lastTick = 0;
+    let skipped = 0;
 
     const camera = (): Frame => {
       const pitch = Math.min((state.tilt * Math.PI) / 180 + state.pitch, Math.PI / 2 - 1e-4);
@@ -1161,11 +1173,11 @@ const Topography = ({
       const fadeStart = fadeEnd * 0.7 + (bottom * 0.7 - fadeEnd * 0.7) * s.fog;
       const box = footprint(cam, s, fadeEnd);
 
-      const cellKey = `${view.width}x${view.height}@${view.ratio}|${Math.round(state.tilt / 4)}|${Math.round(state.elevation * 5)}|${s.fog}`;
+      const cellKey = `${view.width}x${view.height}@${view.ratio}|${Math.round(state.tilt / 4)}|${Math.round(state.elevation * 5)}|${s.fog}|${s.meshScale}`;
       if (cellKey !== view.cellKey) {
         view.cellKey = cellKey;
         const focal = (view.height * view.ratio * 0.5) / lens(view.width / view.height);
-        let cell = clamp((14 * Math.max(box.near, 0.5)) / focal, 0.02, 0.4);
+        let cell = clamp((14 * s.meshScale * Math.max(box.near, 0.5)) / focal, 0.02, 0.4 * s.meshScale);
         const cells = ((box.maxX - box.minX) * (box.maxZ - box.minZ)) / (cell * cell);
         if (cells > MAX_CELLS) cell *= Math.sqrt(cells / MAX_CELLS);
         view.cell = cell;
@@ -1452,6 +1464,23 @@ const Topography = ({
       }
       const s = settingsRef.current;
       if (s.dpr !== sizedDpr) resize();
+      /*
+       * Cap the draw rate by skipping a whole number of display frames, so the
+       * spacing stays even (a 144 Hz screen with maxFps 60 draws every 2nd frame,
+       * 72 fps; a 60 Hz screen draws every frame). Uneven skipping looks like stutter.
+       */
+      if (lastTick) {
+        const gap = now - lastTick;
+        if (gap > 2 && gap < 50) displayInterval += (gap - displayInterval) * 0.1;
+      }
+      lastTick = now;
+      const every = Math.max(1, Math.round(1000 / displayInterval / s.maxFps));
+      if (skipped + 1 < every) {
+        skipped++;
+        raf = requestAnimationFrame(frame);
+        return;
+      }
+      skipped = 0;
       const dt = last ? clamp((now - last) / 1000, 0, 1 / 20) : 1 / 60;
       last = now;
 

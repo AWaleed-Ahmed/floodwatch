@@ -1,18 +1,50 @@
+import type { CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Wordmark } from '../components/Wordmark'
 
-/** FloodWatch wordmark and tagline, set in black near the top-left of the background. */
+const TITLE = 'FloodWatch'
+
+/**
+ * FloodWatch wordmark and tagline near the top-left of the background.
+ *
+ * Intro (CSS only, see the hero-* rules in index.css): a thick line draws in
+ * under the title, each letter rises out of it from left to right, the teal dot
+ * pops in, the line retracts, and the two tagline lines float up.
+ *
+ * The block is always laid out left to right so it stays in the same place in
+ * Urdu; only the tagline text itself runs right to left.
+ */
 export default function Hero() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
-    <div className="flex flex-col items-start ps-[5vw] pe-4 pt-[16svh] text-start">
-      <h1>
-        <Wordmark className="block text-[clamp(2.75rem,9vw,8rem)]" />
+    <div dir="ltr" className="flex flex-col items-start pt-[16svh] pr-4 pl-[5vw] text-left">
+      <h1
+        aria-label={TITLE}
+        className="font-display text-[clamp(2.75rem,9vw,8rem)] leading-[0.9] tracking-[-0.02em] text-ink-950"
+      >
+        <span aria-hidden="true" className="relative inline-flex items-baseline">
+          <span className="-mt-[0.15em] flex overflow-hidden pt-[0.15em]">
+            {[...TITLE].map((letter, index) => (
+              <span key={index} className="hero-letter inline-block" style={{ '--i': index } as CSSProperties}>
+                {letter}
+              </span>
+            ))}
+          </span>
+          <span className="hero-dot ms-[0.04em] inline-block size-[0.17em] rounded-full bg-linear-to-tr from-teal-600 via-teal-400 to-paper" />
+          <span className="hero-line absolute bottom-0 left-0 h-[0.05em] w-full rounded-full bg-ink-950" />
+        </span>
       </h1>
-      <p className="mt-4 ps-[0.08em] text-[clamp(1rem,1.6vw,1.25rem)] font-medium tracking-[-0.01em] text-ink-800">
-        {t('hero.taglineTop')}
-        <br />
-        {t('hero.taglineBottom')}
+
+      <p
+        dir={i18n.dir()}
+        data-lang-fade
+        className="mt-4 ps-[0.08em] text-[clamp(1rem,1.6vw,1.25rem)] font-medium tracking-[-0.01em] text-ink-800 ur:mt-2 ur:leading-[2.1] ur:tracking-normal"
+      >
+        <span className="hero-float block" style={{ '--delay': '1050ms' } as CSSProperties}>
+          {t('hero.taglineTop')}
+        </span>
+        <span className="hero-float block" style={{ '--delay': '1160ms' } as CSSProperties}>
+          {t('hero.taglineBottom')}
+        </span>
       </p>
     </div>
   )

@@ -52,7 +52,7 @@ export function ShelterMapPage() {
 
   return (
     <>
-      <h1 className="font-display text-[clamp(2.25rem,5vw,3.5rem)] leading-tight tracking-[-0.02em] text-ink-950">{t('shelters.title')}</h1>
+      <h1 className="font-display text-[clamp(2.25rem,5vw,3.5rem)] leading-tight tracking-[-0.02em] text-ink-950 ur:leading-[1.8] ur:tracking-normal">{t('shelters.title')}</h1>
       <div className="mt-6">
         <AreaPicker areas={areas} areaId={areaId} onChange={setAreaId} />
       </div>
