@@ -19,7 +19,7 @@ export default function Background({ children }: BackgroundProps) {
       >
         <Topography
           color="#000000"
-          rippleColor="#0b3fb3"
+          rippleColor="#009689"
           lightMode
           lineCount={20}
           lineWidth={1}
