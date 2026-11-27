@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
+/* `ur:` applies a class only while the page language is Urdu (html lang="ur"). */
+@custom-variant ur (&:lang(ur));
+
 @theme {
-  --font-sans: "Manrope", system-ui, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Clash Display", "Manrope", system-ui, sans-serif;
+  /* Latin faces first; Urdu glyphs fall through to Noto Nastaliq Urdu, the Nastaliq face iOS uses for Urdu. */
+  --font-sans: "Manrope", "Noto Nastaliq Urdu", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Clash Display", "Manrope", "Noto Nastaliq Urdu", system-ui, sans-serif;
 
   /* Ink palette: paper white at the top fading to dark graphite at the bottom. */
   --color-ink-950: #0a0a0a;
@@ -21,4 +25,103 @@
 
 body {
   @apply bg-paper font-sans text-ink-950 antialiased;
+}
+
+/* Nastaliq is tall: its letters reach far above and below the line, so Urdu needs much more line height. */
+:lang(ur) body {
+  line-height: 2;
+}
+
+/*
+ * Hero intro, transform and opacity only (no layout work, runs on the compositor):
+ * a thick line draws left to right, the letters rise out of it one by one, the
+ * teal dot pops in, the line retracts, then the tagline lines float up.
+ */
+@keyframes hero-line-draw {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes hero-line-retract {
+  from { transform: scaleX(1); transform-origin: right; }
+  to { transform: scaleX(0); transform-origin: right; }
+}
+
+@keyframes hero-rise {
+  from { transform: translateY(110%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes hero-pop {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+@keyframes hero-float {
+  from { transform: translateY(0.75rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.hero-line {
+  transform-origin: left;
+  animation:
+    hero-line-draw 520ms cubic-bezier(0.65, 0, 0.35, 1) both,
+    hero-line-retract 480ms cubic-bezier(0.65, 0, 0.35, 1) 1450ms forwards;
+}
+
+.hero-letter {
+  animation: hero-rise 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(320ms + var(--i) * 48ms);
+}
+
+.hero-dot {
+  animation: hero-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) 1200ms both;
+}
+
+.hero-float {
+  animation: hero-float 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-letter,
+  .hero-dot,
+  .hero-float {
+    animation: none;
+  }
+
+  .hero-line {
+    display: none;
+  }
+}
+
+/*
+ * Language switch: only the text that changes fades out, swaps and fades back in.
+ * Nothing else is frozen, so the terrain and menu keep animating throughout.
+ */
+[data-lang-fade] {
+  transition: opacity 180ms ease;
+}
+
+.lang-out [data-lang-fade] {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-lang-fade] {
+    transition: none;
+  }
+}
+
+/*
+ * Page transition: the terrain fades away as the dot starts to fall, so the dot
+ * is the only thing moving. Once it is invisible it stops drawing (see
+ * .terrain-paused in Topography.tsx), which frees the GPU for the transition.
+ */
+.terrain-layer {
+  transition: opacity 450ms ease;
+}
+
+.is-transitioning .terrain-layer {
+  opacity: 0;
 }

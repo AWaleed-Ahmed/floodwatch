@@ -6,7 +6,7 @@ export function SafetyInfoPage() {
   const steps = t('safety.steps', { returnObjects: true }) as string[]
   return (
     <>
-      <h1 className="font-display text-[clamp(2.25rem,5vw,3.5rem)] leading-tight tracking-[-0.02em] text-ink-950">{t('safety.title')}</h1>
+      <h1 className="font-display text-[clamp(2.25rem,5vw,3.5rem)] leading-tight tracking-[-0.02em] text-ink-950 ur:leading-[1.8] ur:tracking-normal">{t('safety.title')}</h1>
       <ol className="mt-8 max-w-3xl list-decimal space-y-4 ps-6 text-lg leading-relaxed text-ink-800 marker:font-semibold marker:text-teal-700">
         {steps.map((s) => (
           <li key={s} className="ps-2">

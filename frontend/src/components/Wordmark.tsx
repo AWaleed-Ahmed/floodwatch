@@ -5,7 +5,8 @@ export function Wordmark({ className = '' }: { className?: string }) {
       FloodWatch
       <span
         aria-hidden="true"
-        className="ms-[0.04em] inline-block size-[0.17em] rounded-full bg-linear-to-tr from-teal-600 via-teal-400 to-white align-baseline"
+        data-teal-dot
+        className="ms-[0.04em] inline-block size-[0.17em] rounded-full bg-linear-to-tr from-teal-600 via-teal-400 to-paper align-baseline"
       />
     </span>
   )

@@ -8,13 +8,13 @@ export function PageShell({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
   return (
     <div className="flex min-h-svh flex-col bg-paper">
-      <header className="flex h-24 items-center ps-[5vw] pe-[calc(5vw+7.5rem)]">
+      <header dir="ltr" className="flex h-24 items-center pr-[calc(5vw+7.5rem)] pl-[5vw]">
         <Link to="/" className="rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
           <Wordmark className="text-3xl" />
         </Link>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-[5vw] pb-16 lg:px-0">{children}</main>
-      <footer className="border-t border-ink-100 px-[5vw] py-6 text-center text-sm text-ink-600">{t('common.footer')}</footer>
+      <main data-lang-fade className="mx-auto w-full max-w-5xl flex-1 px-[5vw] pb-16 lg:px-0">{children}</main>
+      <footer data-lang-fade className="border-t border-ink-100 px-[5vw] py-6 text-center text-sm text-ink-600">{t('common.footer')}</footer>
     </div>
   )
 }

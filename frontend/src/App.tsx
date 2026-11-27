@@ -2,16 +2,19 @@ import { lazy, Suspense, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Route, Routes } from 'react-router'
 import { PageShell } from './components/PageShell'
+import PageTransition from './components/PageTransition'
 import Background from './Landing/Background.tsx'
 import Menu from './Landing/Component/Menu.tsx'
+import HelpLine from './Landing/HelpLine.tsx'
 import Hero from './Landing/Hero.tsx'
+import { loadDashboard, loadNotFound, loadPlaceholder, loadSafety, loadShelters } from './pageLoaders'
 
 /** Each page loads in its own chunk, so the landing page never downloads the chart or map libraries. */
-const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })))
-const ShelterMapPage = lazy(() => import('./pages/ShelterMapPage').then((m) => ({ default: m.ShelterMapPage })))
-const SafetyInfoPage = lazy(() => import('./pages/SafetyInfoPage').then((m) => ({ default: m.SafetyInfoPage })))
-const PlaceholderPage = lazy(() => import('./pages/PlaceholderPage').then((m) => ({ default: m.PlaceholderPage })))
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
+const DashboardPage = lazy(() => loadDashboard().then((m) => ({ default: m.DashboardPage })))
+const ShelterMapPage = lazy(() => loadShelters().then((m) => ({ default: m.ShelterMapPage })))
+const SafetyInfoPage = lazy(() => loadSafety().then((m) => ({ default: m.SafetyInfoPage })))
+const PlaceholderPage = lazy(() => loadPlaceholder().then((m) => ({ default: m.PlaceholderPage })))
+const NotFoundPage = lazy(() => loadNotFound().then((m) => ({ default: m.NotFoundPage })))
 
 function Inner({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
@@ -31,6 +34,7 @@ export default function App() {
           element={
             <Background>
               <Hero />
+              <HelpLine />
             </Background>
           }
         />
@@ -45,6 +49,7 @@ export default function App() {
         <Route path="*" element={<Inner><NotFoundPage /></Inner>} />
       </Routes>
       <Menu />
+      <PageTransition />
     </>
   )
 }

@@ -82,10 +82,15 @@
       "risk": "Low, Medium or High",
       "shelters": "Map and directions",
       "safety": "What to do in a flood"
-    }
+    },
+    "language": "Language"
   },
   "notFound": {
     "title": "Page not found",
     "back": "Back to the start"
+  },
+  "help": {
+    "question": "Need immediate help?",
+    "contact": "Contact us"
   }
 }
