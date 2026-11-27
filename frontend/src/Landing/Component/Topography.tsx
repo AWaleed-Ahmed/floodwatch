@@ -21,6 +21,8 @@ export type TopographyMarkers = 'none' | 'plus' | 'dots';
 
 export interface TopographyProps {
   color?: string;
+  /** Line colour inside a ripple as it passes; defaults to `color`. */
+  rippleColor?: string;
   lineCount?: number;
   lineWidth?: number;
   majorLines?: boolean;
@@ -44,6 +46,8 @@ export interface TopographyProps {
   trail?: number;
   parallax?: number;
   clickEffect?: TopographyClickEffect;
+  /** Seconds between automatic ripples at random spots on the terrain (0 turns it off). */
+  autoPulse?: number;
   markers?: TopographyMarkers;
   glitch?: number;
   intro?: boolean;
@@ -284,6 +288,7 @@ uniform float uLines;
 uniform float uLineWidth;
 uniform float uMajor;
 uniform vec3 uColor;
+uniform vec3 uRippleColor;
 uniform float uBrightness;
 uniform vec2 uFade;
 uniform vec3 uFocus;
@@ -411,14 +416,15 @@ void main() {
     light += trace * uTrace.y * mix(0.35, 1.0, exp(-dot(td, td) / 20.0)) * 2.6;
   }
   light *= fade * uBrightness * uReveal;
+  vec3 tint = mix(uColor, uRippleColor, clamp(ring * 2.5, 0.0, 1.0));
 
   if (uLightMode > 0.5) {
     float ink = (1.0 - exp(-max(max(light.r, light.g), light.b) * 1.8)) * 0.92 * uOpacity;
-    outColor = vec4(uColor * ink, ink);
+    outColor = vec4(tint * ink, ink);
     return;
   }
 
-  vec3 color = 1.0 - exp(-uColor * light * 1.8);
+  vec3 color = 1.0 - exp(-tint * light * 1.8);
   float top = max(max(color.r, color.g), color.b);
   float dither = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5;
   color = max(color + dither / 255.0 * step(0.002, top), 0.0);
@@ -771,6 +777,7 @@ const viewProjection = ({ eye, f, r, u }: Frame, aspect: number, out: Float32Arr
 
 const Topography = ({
   color = '#4f7cff',
+  rippleColor,
   lineCount = 22,
   lineWidth = 1.2,
   majorLines = true,
@@ -794,6 +801,7 @@ const Topography = ({
   trail = 0.3,
   parallax = 0.5,
   clickEffect = 'pulse',
+  autoPulse = 0,
   markers = 'none',
   glitch = 0,
   intro = true,
@@ -809,6 +817,7 @@ const Topography = ({
   const [generation, setGeneration] = useState(0);
   const settings = {
     color,
+    rippleColor: rippleColor ?? color,
     lineCount: clamp(lineCount, 2, 80),
     lineWidth: Math.max(0.2, lineWidth),
     majorLines,
@@ -832,6 +841,7 @@ const Topography = ({
     trail: clamp(trail, 0, 1),
     parallax: clamp(parallax, 0, 1),
     clickEffect,
+    autoPulse: Math.max(0, autoPulse),
     markers: MARKER_STYLES[markers] ?? -1,
     glitch: clamp(glitch, 0, 1),
     intro,
@@ -1021,6 +1031,7 @@ const Topography = ({
     let quiet = 0;
     let ready = !parallel;
     let disposed = false;
+    let nextAutoPulse = 1.5;
 
     const camera = (): Frame => {
       const pitch = Math.min((state.tilt * Math.PI) / 180 + state.pitch, Math.PI / 2 - 1e-4);
@@ -1161,6 +1172,7 @@ const Topography = ({
       }
 
       const color = toRgb(s.color);
+      const rippleColor = toRgb(s.rippleColor);
       const height = state.elevation * HEIGHT * state.rise;
       const layout = grid(box, view.cell);
       const near = nearRange(cam, s);
@@ -1227,6 +1239,7 @@ const Topography = ({
         gl.uniform1f(u.uLineWidth, s.lineWidth * pixel);
         gl.uniform1f(u.uMajor, s.majorLines ? 1 : 0);
         gl.uniform3fv(u.uColor, color);
+        gl.uniform3fv(u.uRippleColor, rippleColor);
         gl.uniform1f(u.uBrightness, s.brightness);
         gl.uniform2f(u.uFade, fadeStart, fadeEnd);
         gl.uniform3f(u.uFocus, state.focus, focusScale * pixel, view.height * 0.03 * pixel);
@@ -1523,6 +1536,15 @@ const Topography = ({
         if (pulses[i].age > 4) pulses.splice(i, 1);
       }
 
+      if (s.autoPulse > 0 && !reduce && state.intro >= 1 && state.clock >= nextAutoPulse) {
+        nextAutoPulse = state.clock + s.autoPulse * (0.6 + Math.random() * 0.8);
+        const spot = pick(cam, s, Math.random() * 1.6 - 0.8, -0.85 + Math.random() * 0.7);
+        if (spot) {
+          if (pulses.length >= MAX_PULSES) pulses.shift();
+          pulses.push({ x: spot.x, z: spot.z, age: 0 });
+        }
+      }
+
       const sculpting = updateSculpt(s, dt);
       render();
 
@@ -1536,7 +1558,7 @@ const Topography = ({
         Math.abs(focusTarget - state.focus) > 1e-3 ||
         Math.abs(tracing - state.trace) > 1e-3;
       const busy =
-        (!reduce && (s.speed !== 0 || s.morph !== 0 || s.glitch > 0 || s.markers >= 0)) ||
+        (!reduce && (s.speed !== 0 || s.morph !== 0 || s.glitch > 0 || s.markers >= 0 || s.autoPulse > 0)) ||
         state.intro < 1 ||
         pulses.length > 0 ||
         sculpting ||

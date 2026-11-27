@@ -1,20 +1,20 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "General Sans", system-ui, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Clash Display", "General Sans", system-ui, sans-serif;
+  --font-sans: "Manrope", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Clash Display", "Manrope", system-ui, sans-serif;
 
-  /* River palette: deep teal at the top fading to misty blue-white at the bottom. */
-  --color-river-950: #01191b;
-  --color-river-900: #032a2d;
-  --color-river-800: #0c3f42;
-  --color-river-600: #2f6f75;
-  --color-river-400: #6ea3a9;
-  --color-river-200: #a9c8cf;
-  --color-river-100: #cfe0e5;
-  --color-river-50: #e8f0f3;
+  /* Ink palette: paper white at the top fading to dark graphite at the bottom. */
+  --color-ink-950: #0a0a0a;
+  --color-ink-800: #2b2b2b;
+  --color-ink-600: #5c5c5c;
+  --color-ink-400: #8f8f8f;
+  --color-ink-200: #c7c7c7;
+  --color-ink-100: #e4e4e4;
+  --color-ink-50: #f5f5f5;
+  --color-paper: #ffffff;
 }
 
 body {
-  @apply bg-river-50 font-sans text-river-950 antialiased;
+  @apply bg-paper font-sans text-ink-950 antialiased;
 }
