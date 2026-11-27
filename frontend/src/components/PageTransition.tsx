@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { whenIdle } from '../Landing/whenIdle'
+import i18n from '../i18n'
 import { prefetchPage } from '../pageLoaders'
 
 /** Wait for the menu to finish closing before anything moves, in ms. */
@@ -46,6 +47,21 @@ const nextPaint = () => new Promise((resolve) => requestAnimationFrame(() => req
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 const idle = (timeout: number) => new Promise<void>((resolve) => void whenIdle(() => resolve(), timeout))
 
+/** Page-to-page arch: how tall its curve is, as a fraction of the screen height. */
+const ARCH_CURVE = 0.24
+
+/** Label shown in the arch for each page. */
+const PAGE_LABELS: Record<string, string> = {
+  '/dashboard': 'nav.dashboard',
+  '/risk': 'nav.risk',
+  '/shelters': 'nav.shelters',
+  '/safety': 'nav.safety',
+  '/alerts': 'nav.alerts',
+  '/incidents': 'nav.incidents',
+  '/relief': 'nav.relief',
+  '/login': 'menu.login',
+}
+
 let runner: ((to: string) => void) | null = null
 
 /**
@@ -67,7 +83,9 @@ const frame = (x: number, y: number, w: number, h: number, r: number) => ({
 })
 
 /**
- * Page transition performed by the wordmark's own teal dot.
+ * Page transitions.
+ *
+ * Leaving the landing page, the wordmark's own teal dot performs it:
  *
  *  1. The menu finishes closing.
  *  2. The dot is lifted out of the wordmark and drops straight down from where
@@ -90,6 +108,8 @@ export default function PageTransition() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const coverRef = useRef<HTMLDivElement>(null)
+  const archRef = useRef<HTMLDivElement>(null)
+  const labelRef = useRef<HTMLSpanElement>(null)
   const busyRef = useRef(false)
   const pathRef = useRef(pathname)
 
@@ -98,6 +118,54 @@ export default function PageTransition() {
   }, [pathname])
 
   useEffect(() => {
+    /**
+     * Page to page: a wide black arch swoops up from the bottom in one quick
+     * motion with the next page's name riding in it, covers the page, the route
+     * changes underneath, and the cover fades away in place. Transform and
+     * opacity only.
+     */
+    const runArch = async (to: string) => {
+      const arch = archRef.current
+      const label = labelRef.current
+      const page = prefetchPage(to)
+      if (!arch || !label) {
+        await page
+        navigate(to)
+        window.scrollTo(0, 0)
+        return
+      }
+      label.textContent = i18n.t(PAGE_LABELS[to] ?? 'app.name')
+      label.lang = i18n.language
+      label.dir = i18n.dir()
+
+      /* Give the menu a moment to start closing so the two don't collide. */
+      await wait(120)
+
+      const root = document.documentElement
+      const vh = window.innerHeight
+      const curve = vh * ARCH_CURVE
+      const at = (y: number) => ({ transform: `translate3d(0, ${y}px, 0)` })
+      root.style.pointerEvents = 'none'
+      arch.style.visibility = 'visible'
+      try {
+        /* One swoop from below the screen to fully covering it (its curved top ends just above the screen). */
+        label.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: 140, easing: 'ease-out', fill: 'forwards' })
+        await arch.animate([at(vh), at(-curve)], { duration: 520, easing: 'cubic-bezier(0.7, 0, 0.2, 1)', fill: 'forwards' }).finished
+        await page
+        navigate(to)
+        window.scrollTo(0, 0)
+        await nextPaint()
+        /* A beat to read the name, then the cover simply fades away in place. */
+        await wait(110)
+        await arch.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, easing: 'ease-out', fill: 'forwards' }).finished
+      } finally {
+        arch.getAnimations().forEach((animation) => animation.cancel())
+        label.getAnimations().forEach((animation) => animation.cancel())
+        arch.style.visibility = 'hidden'
+        root.style.pointerEvents = ''
+      }
+    }
+
     runner = async (to: string) => {
       const cover = coverRef.current
       if (busyRef.current || to === pathRef.current) return
@@ -108,6 +176,18 @@ export default function PageTransition() {
         window.scrollTo(0, 0)
         return
       }
+
+      /* The teal-dot drop is only for leaving the landing page; between pages the arch is used. */
+      if (pathRef.current !== '/') {
+        busyRef.current = true
+        try {
+          await runArch(to)
+        } finally {
+          busyRef.current = false
+        }
+        return
+      }
+
       busyRef.current = true
       const root = document.documentElement
 
@@ -220,5 +300,25 @@ export default function PageTransition() {
     }
   }, [navigate])
 
-  return <div ref={coverRef} aria-hidden="true" className="pointer-events-none invisible fixed inset-0 z-[61] bg-paper" />
+  return (
+    <>
+      <div ref={coverRef} aria-hidden="true" className="pointer-events-none invisible fixed inset-0 z-[61] bg-paper" />
+      {/* The arch: wider than the screen with an elliptical top edge, so its curve is broad and flat, not a semicircle. Flat bottom. */}
+      <div
+        ref={archRef}
+        aria-hidden="true"
+        className="pointer-events-none invisible fixed top-0 -right-[12vw] -left-[12vw] z-[61] bg-ink-950 will-change-transform"
+        style={{
+          height: `${100 + ARCH_CURVE * 100}svh`,
+          borderRadius: `50% 50% 0 0 / ${ARCH_CURVE * 100}svh ${ARCH_CURVE * 100}svh 0 0`,
+          transform: 'translate3d(0, 100svh, 0)',
+        }}
+      >
+        <span
+          ref={labelRef}
+          className="absolute inset-x-0 top-[74svh] -translate-y-1/2 text-center font-display text-[clamp(2.1rem,5.8vw,4.6rem)] leading-none tracking-[-0.02em] text-paper opacity-0 ur:leading-[1.6] ur:tracking-normal"
+        />
+      </div>
+    </>
+  )
 }
