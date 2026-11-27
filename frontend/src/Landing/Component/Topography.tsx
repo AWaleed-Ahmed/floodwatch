@@ -1442,6 +1442,12 @@ const Topography = ({
     const frame = (now: number) => {
       raf = 0;
       if (!visible || document.hidden) return;
+      /* A page transition has faded this canvas out: skip drawing until it is over, keep the clock in step. */
+      if (document.documentElement.classList.contains('terrain-paused')) {
+        last = now;
+        raf = requestAnimationFrame(frame);
+        return;
+      }
       if (!ready) {
         if (gl.isContextLost()) return;
         if (!linked()) {

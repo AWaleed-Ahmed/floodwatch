@@ -45,3 +45,10 @@ export interface Shelter {
   capacity: number
   sample: boolean
 }
+
+/** GET /api/support: where to send website help (set by SUPPORT_EMAIL on the server). */
+export interface SupportContact {
+  email: string
+  subject: string
+  mailto: string
+}

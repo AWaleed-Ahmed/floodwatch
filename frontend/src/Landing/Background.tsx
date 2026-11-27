@@ -26,7 +26,7 @@ export default function Background({ children }: BackgroundProps) {
     <section className="relative isolate min-h-svh overflow-hidden bg-[linear-gradient(180deg,var(--color-paper)_0%,var(--color-ink-50)_30%,var(--color-ink-100)_50%,var(--color-ink-200)_68%,var(--color-ink-400)_86%,var(--color-ink-600)_100%)]">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[78%] opacity-45"
+        className="terrain-layer pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[78%] opacity-45"
       >
         {showTerrain && (
           <Suspense fallback={null}>
@@ -45,9 +45,9 @@ export default function Background({ children }: BackgroundProps) {
               fog={0.5}
               depthOfField={0}
               brightness={1.1}
-              mouseStrength={0.35}
-              parallax={0.3}
-              clickEffect="pulse"
+              mouseInteraction={false}
+              parallax={0}
+              clickEffect="none"
               autoPulse={5}
               markers="none"
               dpr={Math.min(window.devicePixelRatio || 1, 1.5)}
@@ -57,7 +57,7 @@ export default function Background({ children }: BackgroundProps) {
           </Suspense>
         )}
       </div>
-      <div className="relative">{children}</div>
+      <div className="relative min-h-svh">{children}</div>
     </section>
   )
 }

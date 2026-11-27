@@ -88,5 +88,9 @@
   "notFound": {
     "title": "Page not found",
     "back": "Back to the start"
+  },
+  "help": {
+    "question": "Need immediate help?",
+    "contact": "Contact us"
   }
 }

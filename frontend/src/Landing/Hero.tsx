@@ -16,7 +16,7 @@ const TITLE = 'FloodWatch'
 export default function Hero() {
   const { t, i18n } = useTranslation()
   return (
-    <div dir="ltr" className="flex flex-col items-start pt-[16svh] pr-4 pl-[5vw] text-left">
+    <div dir="ltr" className="flex flex-col items-start pt-[10svh] pr-4 pl-[3.5vw] text-left">
       <h1
         aria-label={TITLE}
         className="font-display text-[clamp(2.75rem,9vw,8rem)] leading-[0.9] tracking-[-0.02em] text-ink-950"
@@ -29,7 +29,7 @@ export default function Hero() {
               </span>
             ))}
           </span>
-          <span className="hero-dot ms-[0.04em] inline-block size-[0.17em] rounded-full bg-linear-to-tr from-teal-600 via-teal-400 to-paper" />
+          <span data-teal-dot className="hero-dot ms-[0.04em] inline-block size-[0.17em] rounded-full bg-linear-to-tr from-teal-600 via-teal-400 to-paper" />
           <span className="hero-line absolute bottom-0 left-0 h-[0.05em] w-full rounded-full bg-ink-950" />
         </span>
       </h1>

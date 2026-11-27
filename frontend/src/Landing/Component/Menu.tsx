@@ -1,6 +1,7 @@
-import { useEffect, useId, useRef, useState, type TransitionEvent } from 'react'
+import { useEffect, useId, useRef, useState, type MouseEvent, type TransitionEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+import { transitionTo } from '../../components/PageTransition'
 import { whenIdle } from '../whenIdle.ts'
 
 /** `key` names both the label (nav.<key>) and the hint (menu.hints.<key>) in the locale files. */
@@ -48,6 +49,17 @@ export default function Menu() {
   const [open, setOpen] = useState(false)
   const panelId = useId()
   const close = () => setOpen(false)
+
+  /**
+   * Menu links close the menu and hand over to the teal-dot page transition.
+   * Ctrl/Cmd/Shift or middle clicks keep their normal behaviour (new tab or window).
+   */
+  const go = (to: string) => (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    close()
+    transitionTo(to)
+  }
   const [pendingLang, setPendingLang] = useState<string | null>(null)
   /** The language pill slides as soon as an option is pressed, before the text finishes swapping. */
   const urdu = (pendingLang ?? i18n.language) === 'ur'
@@ -169,7 +181,7 @@ export default function Menu() {
                   <Link
                     ref={index === 0 ? firstLinkRef : undefined}
                     to={link.href}
-                    onClick={close}
+                    onClick={go(link.href)}
                     className="group flex items-baseline justify-between gap-4 rounded-xl py-1 outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                   >
                     <span className="font-display text-[clamp(2rem,4.2vw,2.75rem)] leading-tight font-medium ur:text-[clamp(1.6rem,3.4vw,2.2rem)] ur:leading-[1.9] tracking-[-0.01em] transition-[translate] duration-300 group-hover:translate-x-2 group-focus-visible:translate-x-2 rtl:group-hover:-translate-x-2 rtl:group-focus-visible:-translate-x-2">
@@ -194,7 +206,7 @@ export default function Menu() {
                   <li key={link.href}>
                     <Link
                       to={link.href}
-                      onClick={close}
+                      onClick={go(link.href)}
                       className="rounded text-lg text-ink-200 outline-none transition-colors hover:text-paper focus-visible:ring-2 focus-visible:ring-teal-500"
                     >
                       {t(`nav.${link.key}`)}
@@ -217,7 +229,7 @@ export default function Menu() {
               </a>
               <Link
                 to="/login"
-                onClick={close}
+                onClick={go('/login')}
                 className="flex h-11 items-center rounded-full border border-paper/20 px-5 text-sm font-semibold outline-none transition-colors hover:bg-paper/10 focus-visible:ring-2 focus-visible:ring-teal-500"
               >
                 <span data-lang-fade>{t('menu.login')}</span>

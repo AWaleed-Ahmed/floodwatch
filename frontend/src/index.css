@@ -112,3 +112,16 @@ body {
     transition: none;
   }
 }
+
+/*
+ * Page transition: the terrain fades away as the dot starts to fall, so the dot
+ * is the only thing moving. Once it is invisible it stops drawing (see
+ * .terrain-paused in Topography.tsx), which frees the GPU for the transition.
+ */
+.terrain-layer {
+  transition: opacity 450ms ease;
+}
+
+.is-transitioning .terrain-layer {
+  opacity: 0;
+}
