@@ -1583,8 +1583,13 @@ const Topography = ({
       return { x, y, inside: x >= 0 && y >= 0 && x <= rect.width && y <= rect.height };
     };
 
+    const shielded = (event: PointerEvent) =>
+      event.target instanceof Element && event.target.closest('[data-topography-ignore]') !== null;
+
     const onPointerMove = (event: PointerEvent) => {
-      const { x, y, inside } = locate(event);
+      const located = locate(event);
+      const { x, y } = located;
+      const inside = located.inside && !shielded(event);
       const was = pointer.inside;
       pointer.inside = inside;
       if (inside) {
@@ -1597,7 +1602,7 @@ const Topography = ({
     const onPointerDown = (event: PointerEvent) => {
       const s = settingsRef.current;
       const { x, y, inside } = locate(event);
-      if (!inside) return;
+      if (!inside || shielded(event)) return;
       pointer.x = x;
       pointer.y = y;
       pointer.inside = true;

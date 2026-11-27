@@ -66,5 +66,26 @@
   },
   "placeholder": {
     "text": "This feature is designed in the Phase 2 report and will be built in Phase 3."
+  },
+  "hero": {
+    "taglineTop": "Rain forecasts, river levels and flood risk",
+    "taglineBottom": "for where you live."
+  },
+  "menu": {
+    "open": "Menu",
+    "close": "Close",
+    "staff": "Staff",
+    "call": "Call 1122",
+    "login": "Log in",
+    "hints": {
+      "dashboard": "7-day rain and river",
+      "risk": "Low, Medium or High",
+      "shelters": "Map and directions",
+      "safety": "What to do in a flood"
+    }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "back": "Back to the start"
   }
 }

@@ -49,7 +49,7 @@ Login exists in the backend (`POST /api/auth/login`, `GET /api/auth/me`, `POST /
 
 ## 3. Screen inventory
 
-The routes are defined in `web/src/App.tsx`. Every screen shares the top bar (brand, navigation, language switch), the footer disclaimer and the Support button (planned, see 5.6).
+The routes are defined in `frontend/src/App.tsx`. Every screen shares the top bar (brand, navigation, language switch), the footer disclaimer and the Support button (planned, see 5.6).
 
 The shared states listed below apply to every screen that loads data. They are not repeated for each screen.
 
@@ -366,27 +366,29 @@ Notes:
 
 ## 7. Current frontend state
 
+> **Update 2026-11-27:** the frontend now lives in `frontend/` and has been rebuilt with Tailwind CSS 4 and the monochrome theme (see `docs/HANDOFF.md`). The file paths below were updated, but the class names, CSS variables and colours in this section describe the earlier `web/` design and no longer match the code.
+
 **Stack.** React 19, TypeScript, Vite 8, React Router 8, Recharts 3, Leaflet 1.9 with react-leaflet 5, and i18next with react-i18next. There is no UI component library and no CSS framework. All styles are in one global file.
 
 **Files.**
 
 | Path | What it is |
 |---|---|
-| `web/index.html` | Shell, `<title>FloodWatch</title>`, favicon `public/favicon.svg` |
-| `web/src/main.tsx` | Mounts the app, imports `i18n` and `index.css` |
-| `web/src/App.tsx` | Top bar (`.topbar`, `.brand`, `nav`, `.lang`), routes, footer (`.footer`) |
-| `web/src/index.css` | All styles (about 40 lines) |
-| `web/src/i18n.ts` | Language setup, RTL switch, saved choice |
-| `web/src/locales/en.json`, `ur.json` | All interface strings |
-| `web/src/api/client.ts`, `types.ts` | `fetch` wrapper with GETs only and no auth header yet; types that mirror the Java model |
-| `web/src/hooks/useSelectedArea.ts` | Loads the areas and remembers the selected one |
-| `web/src/components/AreaPicker.tsx` | Labelled `<select>` (`.area-picker`) |
-| `web/src/components/StatusBadge.tsx` | `<span class="status status-{live\|cached\|sample\|unavailable}">` |
-| `web/src/components/SourceLine.tsx` | Badge with source, unit and updated time (`.source-line`) |
-| `web/src/pages/DashboardPage.tsx` | Built (3.1) |
-| `web/src/pages/ShelterMapPage.tsx` | Built (3.4) |
-| `web/src/pages/SafetyInfoPage.tsx` | Built (3.7) |
-| `web/src/pages/PlaceholderPage.tsx` | Stand-in for Risk, Alerts, Incidents and Relief |
+| `frontend/index.html` | Shell, `<title>FloodWatch</title>`, favicon `public/favicon.svg` |
+| `frontend/src/main.tsx` | Mounts the app, imports `i18n` and `index.css` |
+| `frontend/src/App.tsx` | Top bar (`.topbar`, `.brand`, `nav`, `.lang`), routes, footer (`.footer`) |
+| `frontend/src/index.css` | All styles (about 40 lines) |
+| `frontend/src/i18n.ts` | Language setup, RTL switch, saved choice |
+| `frontend/src/locales/en.json`, `ur.json` | All interface strings |
+| `frontend/src/api/client.ts`, `types.ts` | `fetch` wrapper with GETs only and no auth header yet; types that mirror the Java model |
+| `frontend/src/hooks/useSelectedArea.ts` | Loads the areas and remembers the selected one |
+| `frontend/src/components/AreaPicker.tsx` | Labelled `<select>` (`.area-picker`) |
+| `frontend/src/components/StatusBadge.tsx` | `<span class="status status-{live\|cached\|sample\|unavailable}">` |
+| `frontend/src/components/SourceLine.tsx` | Badge with source, unit and updated time (`.source-line`) |
+| `frontend/src/pages/DashboardPage.tsx` | Built (3.1) |
+| `frontend/src/pages/ShelterMapPage.tsx` | Built (3.4) |
+| `frontend/src/pages/SafetyInfoPage.tsx` | Built (3.7) |
+| `frontend/src/pages/PlaceholderPage.tsx` | Stand-in for Risk, Alerts, Incidents and Relief |
 
 **CSS variables in `:root` today.**
 
@@ -415,7 +417,7 @@ font-family: system-ui, 'Segoe UI', Roboto, 'Noto Nastaliq Urdu', sans-serif;
 
 **Placeholders and gaps.**
 - Not built yet (frontend only; every endpoint exists): Risk, Alerts, Incidents and Relief pages; Login; the Support button; admin screens for shelters, areas, alert rules and demo alerts.
-- `web/src/api/client.ts` only has GET calls with no auth header; it needs login, token storage and POST/PATCH/PUT/DELETE helpers.
+- `frontend/src/api/client.ts` only has GET calls with no auth header; it needs login, token storage and POST/PATCH/PUT/DELETE helpers.
 - Not present: dark mode, a loaded Urdu font, a phone navigation pattern, skeleton loaders and icons. There is no icon set in the project.
 
 **How to theme without changing behaviour.**

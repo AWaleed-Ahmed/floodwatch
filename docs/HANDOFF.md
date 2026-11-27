@@ -9,7 +9,7 @@ FloodWatch is the Software Construction PBL project (MCS, NUST) of Abdullah Wale
 | Area | State |
 |---|---|
 | Backend (`api/`) | **All 7 PBL features built**, plus login, roles, admin, support and storage hardening. 231 tests pass and the style check reports 0 violations. |
-| Frontend (`web/`) | Dashboard, Shelter map and Safety Info are built. Risk, Alerts, Incidents and Relief are placeholders. There is no login page, Support button or admin screens yet. The theme is waiting for the designer (see `docs/CONTEXT_AND_PLAN.md`). |
+| Frontend (`frontend/`) | React 19, Vite and Tailwind CSS 4, with the new monochrome theme (white-to-graphite gradient, Clash Display and Manrope, teal accent). Landing page (WebGL contour terrain, morphing Menu pill with EN/Urdu switch), Dashboard, Shelter map and Safety Info are built. Risk, Alerts, Incidents, Relief and Login are placeholders. There is no Support button or admin screens yet. The old `web/` app was retired once its pages moved here. |
 | Storage | Supabase Storage bucket `floodwatch-data` (private) when `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` are set; otherwise the local `data/` folder. |
 | CI | GitHub Actions on every PR and on `main`: Java style check, `./mvnw test`, frontend type check and build. |
 | Deployment | Not done yet (see section 6). |
@@ -18,7 +18,7 @@ FloodWatch is the Software Construction PBL project (MCS, NUST) of Abdullah Wale
 
 ```bash
 cd api && ./mvnw spring-boot:run        # http://localhost:8090/api/health
-cd web && npm install && npm run dev    # http://localhost:5173
+cd frontend && npm install && npm run dev    # http://localhost:5173
 cd api && ./mvnw test                   # all backend tests
 python3 scripts/check-style.py          # must print "0 violations"
 ```

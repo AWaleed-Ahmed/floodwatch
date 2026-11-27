@@ -9,7 +9,7 @@ floodwatch/
 ├── .env.example    same file without secrets – safe to commit
 ├── data/           JSON storage used until Supabase is configured
 ├── api/            Spring Boot 4.2, Java 17  (controller → service → integration / repository)
-└── web/            React 19 + TypeScript + Vite
+└── frontend/       React 19 + TypeScript + Vite + Tailwind CSS 4
 ```
 
 ## Project docs
@@ -27,7 +27,7 @@ cd api && ./mvnw spring-boot:run
 
 Frontend – http://localhost:5173
 ```bash
-cd web && npm install && npm run dev
+cd frontend && npm install && npm run dev
 ```
 
 Tests: `cd api && ./mvnw test`
