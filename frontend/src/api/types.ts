@@ -52,3 +52,17 @@ export interface SupportContact {
   subject: string
   mailto: string
 }
+
+/** GET /api/risk?areaId=: the risk level for one area and day (level is null when the data isn't good enough to judge). */
+export interface RiskAssessment {
+  areaId: string
+  date: string
+  level: RiskLevel | null
+  discharge: number | null
+  baseline: number | null
+  ratio: number | null
+  rainMm: number | null
+  reason: string
+  dataStatus: DataStatus
+  disclaimer: string
+}

@@ -19,6 +19,21 @@ export type TopographyHoverEffect = 'lift' | 'trace' | 'light';
 export type TopographyClickEffect = 'pulse' | 'peak' | 'none';
 export type TopographyMarkers = 'none' | 'plus' | 'dots';
 
+export interface TopographyPulse {
+  x: number;
+  y: number;
+  tx: number;
+  tz: number;
+}
+
+/** Where a map spot is on screen: position in px, a size factor for its distance, and how much fog hides it (1 = clear). */
+export interface TopographyProjection {
+  x: number;
+  y: number;
+  scale: number;
+  fade: number;
+}
+
 export interface TopographyProps {
   color?: string;
   /** Line colour inside a ripple as it passes; defaults to `color`. */
@@ -48,6 +63,13 @@ export interface TopographyProps {
   clickEffect?: TopographyClickEffect;
   /** Seconds between automatic ripples at random spots on the terrain (0 turns it off). */
   autoPulse?: number;
+  /** Called when an automatic ripple starts: its position in px inside the component, and its spot on the map (tx, tz). */
+  onPulse?: (point: TopographyPulse) => void;
+  /**
+   * Called after every drawn frame with a function that finds where a map spot
+   * (tx, tz from onPulse) is on screen right now, so overlays can ride on the terrain.
+   */
+  onProject?: (project: (tx: number, tz: number) => TopographyProjection | null) => void;
   markers?: TopographyMarkers;
   glitch?: number;
   intro?: boolean;
@@ -806,6 +828,8 @@ const Topography = ({
   parallax = 0.5,
   clickEffect = 'pulse',
   autoPulse = 0,
+  onPulse,
+  onProject,
   markers = 'none',
   glitch = 0,
   intro = true,
@@ -848,6 +872,8 @@ const Topography = ({
     parallax: clamp(parallax, 0, 1),
     clickEffect,
     autoPulse: Math.max(0, autoPulse),
+    onPulse,
+    onProject,
     markers: MARKER_STYLES[markers] ?? -1,
     glitch: clamp(glitch, 0, 1),
     intro,
@@ -1380,6 +1406,26 @@ const Topography = ({
         gl.disable(gl.BLEND);
       }
       for (let unit = BLOOM_LEVELS; unit >= 0; unit--) bind(unit, null);
+
+      if (s.onProject) {
+        /* Project a map spot through the same camera, height and fog as the lines, so overlays sit on the terrain. */
+        const frequency = FREQUENCY / state.scale;
+        s.onProject((tx: number, tz: number) => {
+          const x = tx - state.travelX;
+          const z = tz - state.travelZ;
+          const y = relief(tx, tz, frequency, state.morph * 0.37, state.morph * 0.23) * height * settleAt(cam, near, x, z);
+          const cw = matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15];
+          if (cw <= NEAR) return null;
+          const cx = (matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12]) / cw;
+          const cy = (matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13]) / cw;
+          return {
+            x: (cx * 0.5 + 0.5) * view.width,
+            y: (0.5 - cy * 0.5) * view.height,
+            scale: clamp(Math.sqrt(cam.distance / cw), 0.55, 1.35),
+            fade: 1 - smoother((cw - fadeStart) / Math.max(fadeEnd - fadeStart, 1e-3))
+          };
+        });
+      }
     };
 
     const updateSculpt = (s: typeof settings, dt: number) => {
@@ -1573,10 +1619,13 @@ const Topography = ({
 
       if (s.autoPulse > 0 && !reduce && state.intro >= 1 && state.clock >= nextAutoPulse) {
         nextAutoPulse = state.clock + s.autoPulse * (0.6 + Math.random() * 0.8);
-        const spot = pick(cam, s, Math.random() * 1.6 - 0.8, -0.85 + Math.random() * 0.7);
+        const nx = Math.random() * 1.6 - 0.8;
+        const ny = -0.85 + Math.random() * 0.7;
+        const spot = pick(cam, s, nx, ny);
         if (spot) {
           if (pulses.length >= MAX_PULSES) pulses.shift();
           pulses.push({ x: spot.x, z: spot.z, age: 0 });
+          s.onPulse?.({ x: ((nx + 1) / 2) * view.width, y: ((1 - ny) / 2) * view.height, tx: spot.x, tz: spot.z });
         }
       }
 

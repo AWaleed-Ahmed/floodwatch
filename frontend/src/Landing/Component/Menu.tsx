@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type MouseEvent, type TransitionEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { transitionTo } from '../../components/PageTransition'
 import { whenIdle } from '../whenIdle.ts'
 
@@ -46,6 +46,8 @@ const reveal = (open: boolean) =>
  */
 export default function Menu() {
   const { t, i18n } = useTranslation()
+  /* On the landing page the pill is centred on the same line as the big title; elsewhere it sits level with the header. */
+  const onLanding = useLocation().pathname === '/'
   const [open, setOpen] = useState(false)
   const panelId = useId()
   const close = () => setOpen(false)
@@ -160,7 +162,11 @@ export default function Menu() {
         className={`fixed inset-0 z-40 ${open ? '' : 'pointer-events-none'}`}
       />
 
-      <div data-topography-ignore className="fixed top-6 right-[5vw] z-50">
+      <div
+        data-topography-ignore
+        className="fixed top-6 right-[5vw] z-50"
+        style={onLanding ? { top: 'calc(var(--hero-line) - 1.5rem)' } : undefined}
+      >
         <div
           className={`absolute top-0 right-0 min-h-12 min-w-[6.5rem] overflow-hidden bg-ink-950 text-paper transition-[width,height,border-radius] motion-reduce:transition-none ${
             open

@@ -36,7 +36,26 @@
     "discharge": "Discharge",
     "sampleWarning": "Data unavailable: live sources could not be reached, so SAMPLE data is shown. Do not use it for decisions.",
     "cachedNote": "Showing recently saved (cached) data. It refreshes automatically.",
-    "noRiver": "No modeled river at this point. Only rainfall is available."
+    "noRiver": "No modeled river at this point. Only rainfall is available.",
+    "riskTitle": "Flood risk today",
+    "weekTitle": "Next 7 days",
+    "riskUnavailable": "Risk levels are unavailable right now. The charts below still show the forecast.",
+    "rainToday": "Rain today",
+    "riverToday": "River flow today",
+    "timesNormal": "{{ratio}}× the normal monsoon level",
+    "noBaseline": "No normal level yet",
+    "wettestDay": "Wettest day",
+    "noRainWeek": "No rain expected",
+    "normalLevel": "Normal monsoon level",
+    "normalCaption": "Normal monsoon level for this river: {{value}} m³/s",
+    "shelterTitle": "Nearest open shelter",
+    "shelterNone": "No open shelter is listed for this area. Call 1122 for help.",
+    "shelterAll": "See all shelters",
+    "people": "{{count}} people",
+    "helpTitle": "Official help",
+    "ffd": "Open PMD flood bulletins",
+    "call": "Call 1122",
+    "today": "Today"
   },
   "shelters": {
     "title": "Emergency Shelters",
@@ -92,5 +111,12 @@
   "help": {
     "question": "Need immediate help?",
     "contact": "Contact us"
+  },
+  "riskLevel": {
+    "LOW": "Low",
+    "MEDIUM": "Medium",
+    "HIGH": "High",
+    "UNKNOWN": "Unknown",
+    "label": "Risk today"
   }
 }

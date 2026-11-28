@@ -16,10 +16,14 @@ const TITLE = 'FloodWatch'
 export default function Hero() {
   const { t, i18n } = useTranslation()
   return (
-    <div dir="ltr" className="flex flex-col items-start pt-[10svh] pr-4 pl-[3.5vw] text-left">
+    <div
+      dir="ltr"
+      className="flex flex-col items-start pr-4 pl-[3.5vw] text-left"
+      style={{ paddingTop: 'calc(var(--hero-line) - var(--hero-title-size) * 0.43)' }}
+    >
       <h1
         aria-label={TITLE}
-        className="font-display text-[clamp(2.75rem,9vw,8rem)] leading-[0.9] tracking-[-0.02em] text-ink-950"
+        className="font-display text-(length:--hero-title-size) leading-[0.9] tracking-[-0.02em] text-ink-950"
       >
         <span aria-hidden="true" className="relative inline-flex items-baseline">
           <span className="-mt-[0.15em] flex overflow-hidden pt-[0.15em]">

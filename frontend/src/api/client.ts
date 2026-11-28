@@ -1,4 +1,4 @@
-import type { Area, Dashboard, Shelter, SupportContact } from './types'
+import type { Area, Dashboard, RiskAssessment, Shelter, SupportContact } from './types'
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8090/api'
 
@@ -24,4 +24,6 @@ export const api = {
   dashboard: (areaId: string) => get<Dashboard>(`/dashboard?areaId=${encodeURIComponent(areaId)}`),
   shelters: (areaId?: string) => get<Shelter[]>(`/shelters${areaId ? `?areaId=${encodeURIComponent(areaId)}` : ''}`),
   support: () => get<SupportContact>('/support'),
+  risk: (areaId: string) => get<RiskAssessment>(`/risk?areaId=${encodeURIComponent(areaId)}`),
+  riskWeek: (areaId: string) => get<RiskAssessment[]>(`/risk/week?areaId=${encodeURIComponent(areaId)}`),
 }

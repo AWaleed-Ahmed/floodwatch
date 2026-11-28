@@ -1,4 +1,6 @@
-import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import type { TopographyProjection, TopographyPulse } from './Component/Topography'
+import RippleMarkers, { type RippleMarkersHandle } from './RippleMarkers'
 import { whenIdle } from './whenIdle.ts'
 
 /** The WebGL terrain is the heaviest part of the page, so its code loads in a separate chunk. */
@@ -19,6 +21,13 @@ interface BackgroundProps {
  */
 export default function Background({ children }: BackgroundProps) {
   const [showTerrain, setShowTerrain] = useState(false)
+  const markersRef = useRef<RippleMarkersHandle>(null)
+  /* Each automatic ripple pins a city marker to its spot on the map; every frame the markers follow the terrain. */
+  const onPulse = useCallback((pulse: TopographyPulse) => markersRef.current?.add(pulse), [])
+  const onProject = useCallback(
+    (project: (tx: number, tz: number) => TopographyProjection | null) => markersRef.current?.project(project),
+    [],
+  )
 
   useEffect(() => whenIdle(() => setShowTerrain(true), 1200), [])
 
@@ -49,6 +58,8 @@ export default function Background({ children }: BackgroundProps) {
               parallax={0}
               clickEffect="none"
               autoPulse={5}
+              onPulse={onPulse}
+              onProject={onProject}
               markers="none"
               dpr={Math.min(window.devicePixelRatio || 1, 1.5)}
               maxFps={60}
@@ -56,6 +67,10 @@ export default function Background({ children }: BackgroundProps) {
             />
           </Suspense>
         )}
+      </div>
+      {/* Same box as the terrain, at full opacity, so the markers sit exactly on the map. */}
+      <div aria-hidden="true" className="terrain-layer pointer-events-none absolute inset-x-0 bottom-0 h-[78%]">
+        <RippleMarkers ref={markersRef} />
       </div>
       <div className="relative min-h-svh">{children}</div>
     </section>
