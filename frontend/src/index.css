@@ -209,3 +209,135 @@ body {
 .fw-popup.maplibregl-popup-anchor-right .maplibregl-popup-tip {
   border-left-color: #0a0a0a;
 }
+
+/*
+ * Dark theme for the inner pages. Only elements marked .themed switch (the
+ * pages, the Menu pill on them, the page transitions), so the landing page
+ * keeps its light look. The same colour names get dark values, so every
+ * component follows without its own dark styles; teal stays teal, and the
+ * light status tints become deep tints with light text.
+ */
+[data-theme='dark'] .themed {
+  color-scheme: dark;
+  /* Soft charcoal rather than black, so it is easy on the eyes; cards sit a step lighter. */
+  --color-paper: #1c1f22;
+  --color-ink-950: #eceef0;
+  --color-ink-800: #d3d6da;
+  --color-ink-600: #a3a8ae;
+  --color-ink-400: #7a8087;
+  --color-ink-200: #4a5057;
+  --color-ink-100: #343a40;
+  --color-ink-50: #262a2f;
+
+  /* Teal stays the accent, a touch brighter so it reads on charcoal. */
+  --color-teal-50: #173431;
+  --color-teal-400: #3fd9c3;
+  --color-teal-500: #22c3ad;
+  --color-teal-600: #12a594;
+  --color-teal-700: #5eead4;
+  --color-teal-800: #a7f3e6;
+  --color-teal-900: #d3faf2;
+  --color-amber-50: #3a2e14;
+  --color-amber-900: #fde68a;
+  --color-orange-50: #3d2618;
+  --color-orange-900: #fed7aa;
+  --color-red-50: #3d1f1f;
+  --color-red-900: #fecaca;
+}
+
+/* Behind the page (overscroll), match the page. */
+[data-theme='dark'] body:has(.themed-page) {
+  background: #1c1f22;
+}
+
+/* While the theme changes, colours glide instead of snapping (only during the switch, so it costs nothing otherwise). */
+.theme-switching .themed,
+.theme-switching .themed * {
+  transition:
+    background-color 360ms ease,
+    color 360ms ease,
+    border-color 360ms ease,
+    fill 360ms ease,
+    stroke 360ms ease !important;
+}
+
+/*
+ * Shine for the accent pieces in the dark theme (wordmark dot, Call 1122): a
+ * soft violet glow, a glossy top edge, and a slow sweep of light across them.
+ * Only on small elements, and still with reduced motion (just no sweep).
+ */
+[data-theme='dark'] .themed .shine {
+  box-shadow:
+    0 0 14px -4px rgba(63, 217, 195, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+[data-theme='dark'] .themed .shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.28) 46%, transparent 60%);
+  background-size: 260% 100%;
+  animation: shine-sweep 3.4s ease-in-out infinite;
+}
+
+@keyframes shine-sweep {
+  0% { background-position: 125% 0; }
+  55%,
+  100% { background-position: -65% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme='dark'] .themed .shine::after {
+    animation: none;
+    background-position: 50% 0;
+  }
+}
+
+/* Page-to-page arch in the dark theme: a soft charcoal a step lighter than the page, not a bright white sheet. */
+[data-theme='dark'] .themed.fw-arch {
+  background: #2c3237;
+}
+
+[data-theme='dark'] .themed .fw-arch-label {
+  color: #dfe3e6;
+}
+
+/*
+ * Safety page water gauge: the water surface drifts (two wave layers at
+ * different speeds, opposite directions) and the level gently bobs.
+ * Transform only, and still with reduced motion.
+ */
+.water-wave {
+  animation: wave-drift 3.6s linear infinite;
+}
+
+.water-wave-back {
+  animation: wave-drift 6.5s linear infinite reverse;
+}
+
+.water-bob {
+  animation: water-bob 3.4s ease-in-out infinite;
+}
+
+/* Shift by exactly one wave (the drawing holds three), so the loop is seamless. */
+@keyframes wave-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-33.3333%); }
+}
+
+@keyframes water-bob {
+  0%,
+  100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .water-wave,
+  .water-wave-back,
+  .water-bob {
+    animation: none;
+  }
+}

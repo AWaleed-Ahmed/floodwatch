@@ -55,7 +55,14 @@
     "helpTitle": "Official help",
     "ffd": "Open PMD flood bulletins",
     "call": "Call 1122",
-    "today": "Today"
+    "today": "Today",
+    "weekPeak": "Highest risk: {{level}} ({{day}})",
+    "weekPeakUnknown": "Highest risk: not enough data yet",
+    "weekWettest": "Wettest: {{day}}, {{mm}} mm",
+    "dayRain": "Rain",
+    "dayChance": "Chance",
+    "dayRiver": "River",
+    "weekNote": "River is each day's modeled flow compared with the normal monsoon level (1× = normal). Hover a day for its reason."
   },
   "shelters": {
     "title": "Emergency Shelters",
@@ -81,7 +88,25 @@
       "Keep an emergency bag ready: water, medicines, ID cards, phone charger and a torch.",
       "In an emergency, call 1122."
     ],
-    "reviewNote": "Urdu text to be checked by a fluent reviewer before the final demo."
+    "reviewNote": "Urdu text to be checked by a fluent reviewer before the final demo.",
+    "intro": "Read these before the rains, not during them. Each step takes a minute and can keep your family safe.",
+    "headings": [
+      "Follow official warnings",
+      "Move to higher ground early",
+      "Stay out of flood water",
+      "Switch off power and gas",
+      "Keep an emergency bag ready",
+      "Call 1122"
+    ],
+    "depthTitle": "How deep is too deep?",
+    "depthIntro": "Moving water is far stronger than it looks. Depth is hard to judge, and roads under water may be washed away.",
+    "d15": "Can knock an adult off their feet",
+    "d30": "Can float and carry away a small car",
+    "d60": "Can sweep away most vehicles, including SUVs and trucks",
+    "turnAround": "If water is moving across a road, turn around. Do not try to cross it.",
+    "depthSource": "Figures from the US National Weather Service (\"Turn Around Don’t Drown\").",
+    "emergencyTitle": "In an emergency",
+    "emergencyText": "Rescue 1122 is the emergency service. Call when a life is in danger or you are trapped by water."
   },
   "placeholder": {
     "text": "This feature is designed in the Phase 2 report and will be built in Phase 3."
@@ -102,7 +127,9 @@
       "shelters": "Map and directions",
       "safety": "What to do in a flood"
     },
-    "language": "Language"
+    "language": "Language",
+    "themeDark": "Switch to dark theme",
+    "themeLight": "Switch to light theme"
   },
   "notFound": {
     "title": "Page not found",

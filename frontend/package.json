@@ -12,6 +12,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.3.5",
     "i18next": "^27.2.10",
+    "lucide-react": "^1.83.0",
     "maplibre-gl": "^6.20.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

@@ -4,18 +4,15 @@ import type { RiskLevel } from '../api/types'
 type Level = RiskLevel | 'UNKNOWN'
 
 /**
- * Each level has its own word, colour and shape (circle, triangle, square, ring),
- * so it can be told apart without relying on colour. The risk colours are kept
- * apart from the shelter colours, so High never looks like a "Full" shelter.
+ * How many of the three gauge ticks are filled, and in what colour. Colour is
+ * never the only signal: the number of filled ticks and the word both carry
+ * the level. Risk colours stay apart from the shelter colours.
  */
-const STYLES: Record<Level, { badge: string; mark: string }> = {
-  LOW: { badge: 'bg-teal-50 text-teal-900 ring-teal-600/25', mark: 'rounded-full bg-teal-600' },
-  MEDIUM: {
-    badge: 'bg-amber-50 text-amber-900 ring-amber-600/30',
-    mark: 'bg-amber-600 [clip-path:polygon(50%_0,100%_100%,0_100%)]',
-  },
-  HIGH: { badge: 'bg-orange-50 text-orange-900 ring-orange-700/30', mark: 'rounded-[2px] bg-orange-700' },
-  UNKNOWN: { badge: 'bg-ink-50 text-ink-800 ring-ink-200', mark: 'rounded-full border-2 border-ink-600' },
+const LEVELS: Record<Level, { filled: number; colour: string }> = {
+  LOW: { filled: 1, colour: 'bg-teal-600' },
+  MEDIUM: { filled: 2, colour: 'bg-amber-500' },
+  HIGH: { filled: 3, colour: 'bg-orange-700' },
+  UNKNOWN: { filled: 0, colour: '' },
 }
 
 interface Props {
@@ -23,19 +20,40 @@ interface Props {
   size?: 'sm' | 'lg'
 }
 
+/**
+ * Risk level as a small river gauge: three stacked ticks like the markings on
+ * a water-level staff, filled from the bottom (one for Low, two for Medium,
+ * three for High; dashed outlines when unknown), with the word beside it in
+ * plain ink. No pill or background, so it sits naturally on light cards, dark
+ * cards and the dark theme; unfilled ticks and the word take the surrounding
+ * text colour.
+ */
 export function RiskBadge({ level, size = 'sm' }: Props) {
   const { t } = useTranslation()
   const key: Level = level ?? 'UNKNOWN'
-  const style = STYLES[key]
+  const { filled, colour } = LEVELS[key]
   const large = size === 'lg'
+
   return (
-    <span
-      className={`inline-flex items-center rounded-full font-semibold ring-1 ring-inset ${style.badge} ${
-        large ? 'gap-2.5 px-4 py-2 text-xl' : 'gap-1.5 px-2 py-0.5 text-xs'
-      }`}
-    >
-      <span aria-hidden="true" className={`inline-block shrink-0 ${style.mark} ${large ? 'size-3.5' : 'size-2'}`} />
-      {t(`riskLevel.${key}`)}
+    <span className={`inline-flex items-center ${large ? 'gap-3' : 'gap-1.5'}`}>
+      <span aria-hidden="true" className={`flex flex-col-reverse ${large ? 'gap-[3px]' : 'gap-[2px]'}`}>
+        {[0, 1, 2].map((tick) => {
+          const on = tick < filled
+          return (
+            <span
+              key={tick}
+              className={`block rounded-[1px] ${large ? 'h-[5px] w-6' : 'h-[3px] w-3.5'} ${
+                key === 'UNKNOWN'
+                  ? 'border border-dashed border-current opacity-40'
+                  : on
+                    ? colour
+                    : 'bg-current opacity-15'
+              }`}
+            />
+          )
+        })}
+      </span>
+      <span className={large ? 'font-display text-2xl leading-none' : 'text-xs font-semibold'}>{t(`riskLevel.${key}`)}</span>
     </span>
   )
 }

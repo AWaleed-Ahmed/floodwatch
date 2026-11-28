@@ -32,7 +32,12 @@ const COVER_RADIUS = 56
 const TEAL = 'saturate(1) brightness(1)'
 const SOFT = 'saturate(0.4) brightness(1.08)'
 const GREY = 'saturate(0) brightness(1.22)'
+/** Dark theme: the dot fades through a soft slate instead of a light grey, so the screen never flashes bright. */
+const SOFT_DARK = 'saturate(0.45) brightness(0.62)'
+const GREY_DARK = 'saturate(0) brightness(0.38)'
 const WHITE = 'saturate(0) brightness(4)'
+/** In the dark theme the dot ends in a deep charcoal instead, matching the dark page it turns into. */
+const BLACK = 'saturate(0) brightness(0.13)'
 
 /** While this class is on <html> the terrain fades out (index.css). */
 export const TRANSITIONING = 'is-transitioning'
@@ -261,6 +266,7 @@ export default function PageTransition() {
           dot.style.willChange = 'filter'
 
           const timing: KeyframeAnimationOptions = { duration: T.expand, fill: 'forwards' }
+          const darkTheme = document.documentElement.dataset.theme === 'dark'
           /* Shape and colour are two animations on the same element, so each keeps its own smooth curve. */
           const move = dot.animate(
             [
@@ -277,10 +283,10 @@ export default function PageTransition() {
           dot.animate(
             [
               { offset: 0, filter: TEAL, easing: 'ease-in' },
-              { offset: at(T.land), filter: SOFT, easing: 'ease-out' },
-              { offset: at(T.settle), filter: GREY },
-              { offset: at(T.whiten), filter: GREY, easing: 'ease-in' },
-              { offset: 1, filter: WHITE },
+              { offset: at(T.land), filter: darkTheme ? SOFT_DARK : SOFT, easing: 'ease-out' },
+              { offset: at(T.settle), filter: darkTheme ? GREY_DARK : GREY },
+              { offset: at(T.whiten), filter: darkTheme ? GREY_DARK : GREY, easing: 'ease-in' },
+              { offset: 1, filter: darkTheme ? BLACK : WHITE },
             ],
             timing,
           )
@@ -321,12 +327,12 @@ export default function PageTransition() {
 
   return (
     <>
-      <div ref={coverRef} aria-hidden="true" className="pointer-events-none invisible fixed inset-0 z-[61] bg-paper" />
+      <div ref={coverRef} aria-hidden="true" className="themed pointer-events-none invisible fixed inset-0 z-[61] bg-paper" />
       {/* The arch: wider than the screen with an elliptical top edge, so its curve is broad and flat, not a semicircle. Flat bottom. */}
       <div
         ref={archRef}
         aria-hidden="true"
-        className="pointer-events-none invisible fixed top-0 -right-[12vw] -left-[12vw] z-[61] bg-ink-950 will-change-transform"
+        className="themed fw-arch pointer-events-none invisible fixed top-0 -right-[12vw] -left-[12vw] z-[61] bg-ink-950 will-change-transform"
         style={{
           height: `${100 + ARCH_CURVE * 100}svh`,
           borderRadius: `50% 50% 0 0 / ${ARCH_CURVE * 100}svh ${ARCH_CURVE * 100}svh 0 0`,
@@ -335,7 +341,7 @@ export default function PageTransition() {
       >
         <span
           ref={labelRef}
-          className="absolute inset-x-0 -translate-y-1/2 text-center font-display text-[clamp(2.1rem,5.8vw,4.6rem)] leading-none tracking-[-0.02em] text-paper opacity-0 ur:leading-[1.6] ur:tracking-normal"
+          className="fw-arch-label absolute inset-x-0 -translate-y-1/2 text-center font-display text-[clamp(2.1rem,5.8vw,4.6rem)] leading-none tracking-[-0.02em] text-paper opacity-0 ur:leading-[1.6] ur:tracking-normal"
         />
       </div>
     </>

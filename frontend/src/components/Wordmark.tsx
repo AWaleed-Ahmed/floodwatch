@@ -6,7 +6,7 @@ export function Wordmark({ className = '' }: { className?: string }) {
       <span
         aria-hidden="true"
         data-teal-dot
-        className="ms-[0.04em] inline-block size-[0.17em] rounded-full bg-linear-to-tr from-teal-600 via-teal-400 to-paper align-baseline"
+        className="shine relative ms-[0.04em] inline-block size-[0.17em] overflow-hidden rounded-full bg-linear-to-tr from-teal-600 via-teal-400 to-paper align-baseline"
       />
     </span>
   )

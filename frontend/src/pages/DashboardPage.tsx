@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  Area,
   Bar,
   CartesianGrid,
   ComposedChart,
   Line,
-  LineChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -21,6 +21,7 @@ import { RiskBadge } from '../components/RiskBadge'
 import { SourceLine } from '../components/SourceLine'
 import { StatusBadge } from '../components/StatusBadge'
 import { useSelectedArea } from '../hooks/useSelectedArea'
+import { useTheme } from '../theme'
 
 /** A CACHED series younger than the backend's cache time is just a fast answer, not a problem. */
 const STALE_MS = 30 * 60 * 1000
@@ -30,7 +31,11 @@ const SHOW_BASELINE_FROM = 0.5
 
 const FFD_URL = import.meta.env.VITE_PMD_FFD_URL ?? 'https://ffd.pmd.gov.pk/'
 
-const CHART = { rain: '#009689', chance: '#2b2b2b', river: '#0a0a0a', normal: '#b45309', grid: '#e4e4e4', axis: '#5c5c5c' }
+/** Chart colours for each theme (Recharts takes plain colour values). */
+const CHARTS = {
+  light: { rain: '#009689', rainTop: '#2dd4bf', rainBottom: '#00796e', riverArea: '#0a0a0a', riverAreaOpacity: 0.1, chance: '#2b2b2b', river: '#0a0a0a', normal: '#b45309', grid: '#e4e4e4', axis: '#5c5c5c', cursor: '#f5f5f5', tooltip: '#ffffff', tooltipText: '#0a0a0a', tooltipBorder: '#e4e4e4' },
+  dark: { rain: '#22c3ad', rainTop: '#5eead4', rainBottom: '#0f766e', riverArea: '#3fd9c3', riverAreaOpacity: 0.22, chance: '#d3d6da', river: '#eceef0', normal: '#fbbf24', grid: '#343a40', axis: '#a3a8ae', cursor: '#262a2f', tooltip: '#262a2f', tooltipText: '#eceef0', tooltipBorder: '#4a5057' },
+}
 
 interface Result {
   areaId: string
@@ -43,6 +48,12 @@ interface Result {
 
 const dayLabel = (time: string) => new Date(time).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })
 const dayName = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: 'short' })
+const dayOfMonth = (date: string) => new Date(`${date}T12:00:00`).getDate()
+
+/** Risk days are Pakistan days, so hourly forecast times are grouped by the date in Asia/Karachi. */
+const pakistanDate = (time: string) => new Date(time).toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' })
+
+const LEVEL_ORDER = { LOW: 1, MEDIUM: 2, HIGH: 3 } as const
 const number = (value: number, digits = 0) => value.toLocaleString(undefined, { maximumFractionDigits: digits })
 
 const isOld = (series: ForecastSeries, now: number) =>
@@ -76,6 +87,8 @@ function Metric({ label, value, note }: { label: string; value: ReactNode; note?
 export function DashboardPage() {
   const { t } = useTranslation()
   const { areas, areaId, setAreaId, error: areaError } = useSelectedArea()
+  const CHART = CHARTS[useTheme()]
+  const tooltipStyle = { contentStyle: { background: CHART.tooltip, borderColor: CHART.tooltipBorder, borderRadius: 12, color: CHART.tooltipText }, labelStyle: { color: CHART.tooltipText } }
   const [result, setResult] = useState<Result | null>(null)
 
   useEffect(() => {
@@ -118,6 +131,27 @@ export function DashboardPage() {
   }, [data])
 
   const discharge = useMemo(() => (data?.discharge.points ?? []).map((p) => ({ day: dayLabel(p.time), m3s: p.value })), [data])
+
+  /** Highest rain chance for each Pakistan day, for the 7-day cards. */
+  const chanceByDate = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const p of data?.rain.points ?? []) {
+      const date = pakistanDate(p.time)
+      map.set(date, Math.max(map.get(date) ?? 0, p.probability ?? 0))
+    }
+    return map
+  }, [data])
+
+  /** The week's highest known risk (first day it happens) and its wettest day, for the summary line. */
+  const peakDay = (risk ?? []).reduce<RiskAssessment | null>(
+    (best, day) => (day.level && (!best?.level || LEVEL_ORDER[day.level] > LEVEL_ORDER[best.level]) ? day : best),
+    null,
+  )
+  const wettestRiskDay = (risk ?? []).reduce<RiskAssessment | null>(
+    (best, day) => ((day.rainMm ?? 0) > (best?.rainMm ?? 0) ? day : best),
+    null,
+  )
+  const dayTitle = (day: RiskAssessment, index: number) => (index === 0 ? t('dashboard.today') : dayName(day.date))
 
   const wettest = rainByDay.reduce<(typeof rainByDay)[number] | null>((best, row) => (!best || row.mm > best.mm ? row : best), null)
   const baseline = today?.baseline ?? null
@@ -163,15 +197,58 @@ export function DashboardPage() {
                   <RiskBadge level={today.level} size="lg" />
                   <p className="max-w-2xl text-lg leading-relaxed text-ink-800">{today.reason}</p>
                 </div>
-                <h3 className="mt-6 text-sm font-medium text-ink-600">{t('dashboard.weekTitle')}</h3>
-                <ol className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-7">
-                  {risk!.map((day, index) => (
-                    <li key={day.date} className="flex flex-col items-center gap-1.5 rounded-2xl bg-ink-50 px-2 py-3" title={day.reason}>
-                      <span className="text-sm font-medium text-ink-800">{index === 0 ? t('dashboard.today') : dayName(day.date)}</span>
-                      <RiskBadge level={day.level} />
-                    </li>
-                  ))}
+                <div className="mt-6 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                  <h3 className="text-sm font-medium text-ink-600">{t('dashboard.weekTitle')}</h3>
+                  <p className="text-sm text-ink-600">
+                    {peakDay?.level
+                      ? t('dashboard.weekPeak', { level: t(`riskLevel.${peakDay.level}`), day: dayTitle(peakDay, risk!.indexOf(peakDay)) })
+                      : t('dashboard.weekPeakUnknown')}
+                    {wettestRiskDay && (wettestRiskDay.rainMm ?? 0) > 0 && (
+                      <>
+                        {' · '}
+                        {t('dashboard.weekWettest', {
+                          day: dayTitle(wettestRiskDay, risk!.indexOf(wettestRiskDay)),
+                          mm: number(wettestRiskDay.rainMm ?? 0, 1),
+                        })}
+                      </>
+                    )}
+                  </p>
+                </div>
+                <ol className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+                  {risk!.map((day, index) => {
+                    const chance = chanceByDate.get(day.date)
+                    return (
+                      <li
+                        key={day.date}
+                        title={day.reason}
+                        className={`flex flex-col gap-2 rounded-2xl px-3 py-3 ${
+                          index === 0 ? 'bg-ink-950 text-paper' : 'bg-ink-50 text-ink-950'
+                        }`}
+                      >
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-sm font-semibold">{dayTitle(day, index)}</span>
+                          <span className={`text-xs tabular-nums ${index === 0 ? 'text-paper/70' : 'text-ink-600'}`}>{dayOfMonth(day.date)}</span>
+                        </div>
+                        <RiskBadge level={day.level} />
+                        <dl className={`grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-xs tabular-nums ${index === 0 ? 'text-paper/80' : 'text-ink-600'}`}>
+                          <dt>{t('dashboard.dayRain')}</dt>
+                          <dd className="text-end font-medium">{day.rainMm != null ? `${number(day.rainMm, 1)} mm` : '–'}</dd>
+                          <dt>{t('dashboard.dayChance')}</dt>
+                          <dd className="text-end font-medium">{chance != null ? `${Math.round(chance)}%` : '–'}</dd>
+                          <dt>{t('dashboard.dayRiver')}</dt>
+                          <dd className="text-end font-medium">
+                            {day.ratio != null
+                              ? `${number(day.ratio, 1)}×`
+                              : day.discharge != null
+                                ? `${number(day.discharge)} m³/s`
+                                : '–'}
+                          </dd>
+                        </dl>
+                      </li>
+                    )
+                  })}
                 </ol>
+                <p className="mt-2 text-xs text-ink-600">{t('dashboard.weekNote')}</p>
               </>
             ) : (
               <p className="text-ink-800">{t('dashboard.riskUnavailable')}</p>
@@ -197,21 +274,28 @@ export function DashboardPage() {
           <Card className="mt-6" title={t('dashboard.rainTitle')}>
             <ResponsiveContainer width="100%" height={260}>
               <ComposedChart data={rainByDay}>
+                <defs>
+                  <linearGradient id="fw-rain-fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={CHART.rainTop} />
+                    <stop offset="100%" stopColor={CHART.rainBottom} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} vertical={false} />
                 <XAxis dataKey="day" stroke={CHART.axis} tickLine={false} />
                 <YAxis yAxisId="mm" unit=" mm" width={64} stroke={CHART.axis} tickLine={false} />
                 <YAxis yAxisId="chance" orientation="right" unit=" %" domain={[0, 100]} width={52} stroke={CHART.axis} tickLine={false} />
                 <Tooltip
-                  cursor={{ fill: '#f5f5f5' }}
+                  {...tooltipStyle}
+                  cursor={{ fill: CHART.cursor }}
                   formatter={(v, name) => (name === 'mm' ? [`${v} mm`, t('dashboard.rain')] : [`${v} %`, t('dashboard.rainChance')])}
                 />
-                <Bar yAxisId="mm" dataKey="mm" fill={CHART.rain} radius={[6, 6, 0, 0]} />
+                <Bar yAxisId="mm" dataKey="mm" fill="url(#fw-rain-fill)" radius={[6, 6, 0, 0]} />
                 <Line yAxisId="chance" type="monotone" dataKey="chance" stroke={CHART.chance} strokeWidth={1.5} strokeDasharray="4 4" dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
             <p className="mt-2 flex flex-wrap gap-4 text-sm text-ink-600">
               <span className="inline-flex items-center gap-1.5">
-                <span aria-hidden="true" className="size-2.5 rounded-sm" style={{ background: CHART.rain }} />
+                <span aria-hidden="true" className="size-2.5 rounded-sm" style={{ background: `linear-gradient(${CHART.rainTop}, ${CHART.rainBottom})` }} />
                 {t('dashboard.rain')} (mm)
               </span>
               <span className="inline-flex items-center gap-1.5">
@@ -229,11 +313,17 @@ export function DashboardPage() {
             ) : (
               <>
                 <ResponsiveContainer width="100%" height={260}>
-                  <LineChart data={discharge}>
+                  <ComposedChart data={discharge}>
+                    <defs>
+                      <linearGradient id="fw-river-fill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={CHART.riverArea} stopOpacity={CHART.riverAreaOpacity} />
+                        <stop offset="100%" stopColor={CHART.riverArea} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} vertical={false} />
                     <XAxis dataKey="day" stroke={CHART.axis} tickLine={false} />
                     <YAxis unit=" m³/s" width={84} stroke={CHART.axis} tickLine={false} />
-                    <Tooltip formatter={(v) => [`${v} m³/s`, t('dashboard.discharge')]} />
+                    <Tooltip {...tooltipStyle} formatter={(v) => [`${v} m³/s`, t('dashboard.discharge')]} />
                     {showBaseline && (
                       <ReferenceLine
                         y={baseline!}
@@ -243,8 +333,9 @@ export function DashboardPage() {
                         label={{ value: t('dashboard.normalLevel'), position: 'insideTopRight', fill: CHART.normal, fontSize: 12 }}
                       />
                     )}
+                    <Area type="monotone" dataKey="m3s" stroke="none" fill="url(#fw-river-fill)" tooltipType="none" />
                     <Line type="monotone" dataKey="m3s" stroke={CHART.river} strokeWidth={2} dot={{ r: 3, fill: CHART.river }} />
-                  </LineChart>
+                  </ComposedChart>
                 </ResponsiveContainer>
                 {baseline !== null && !showBaseline && (
                   <p className="mt-2 text-sm text-ink-600">{t('dashboard.normalCaption', { value: number(baseline) })}</p>
@@ -291,7 +382,7 @@ export function DashboardPage() {
               <div className="flex flex-wrap gap-3">
                 <a
                   href="tel:1122"
-                  className="inline-flex h-11 items-center rounded-full bg-linear-to-tr from-teal-600 to-teal-400 px-5 text-sm font-semibold text-ink-950 outline-none focus-visible:ring-2 focus-visible:ring-ink-950"
+                  className="shine relative inline-flex h-11 items-center overflow-hidden rounded-full bg-linear-to-tr from-teal-600 to-teal-400 px-5 text-sm font-semibold text-ink-950 outline-none focus-visible:ring-2 focus-visible:ring-ink-950"
                 >
                   {t('dashboard.call')}
                 </a>

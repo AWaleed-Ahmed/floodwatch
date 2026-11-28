@@ -164,7 +164,7 @@ export default function Menu() {
 
       <div
         data-topography-ignore
-        className="fixed top-6 right-[5vw] z-50"
+        className={`fixed top-6 right-[5vw] z-50 ${onLanding ? '' : 'themed'}`}
         style={onLanding ? { top: 'calc(var(--hero-line) - 1.5rem)' } : undefined}
       >
         <div
@@ -229,7 +229,7 @@ export default function Menu() {
             >
               <a
                 href="tel:1122"
-                className="flex h-11 items-center gap-2 rounded-full bg-linear-to-tr from-teal-600 to-teal-400 px-5 text-sm font-semibold text-ink-950 outline-none focus-visible:ring-2 focus-visible:ring-paper"
+                className="shine relative flex h-11 items-center gap-2 overflow-hidden rounded-full bg-linear-to-tr from-teal-600 to-teal-400 px-5 text-sm font-semibold text-ink-950 outline-none focus-visible:ring-2 focus-visible:ring-paper"
               >
                 <span data-lang-fade>{t('menu.call')}</span>
               </a>
